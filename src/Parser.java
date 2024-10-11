@@ -16,7 +16,7 @@ import java.io.FileInputStream;
 public class Parser {
 
     public static void main(String[] args) throws Exception {
-        FileInputStream in = new FileInputStream("sample/Library.java");
+        FileInputStream in = new FileInputStream("resources/Library.java");
 
         CompilationUnit cu;
         try {
