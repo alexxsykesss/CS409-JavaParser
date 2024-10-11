@@ -28,11 +28,11 @@ public class Parser {
 //        new MethodParam().visit(cu,null);
 //        new VariableVisitor().visit(cu,null);
 
+//        VariableVisitor variableVisitor = new VariableVisitor();
+//        new MethodVar(variableVisitor).visit(cu, null);
 
-        VariableVisitor variableVisitor = new VariableVisitor();
-        new MethodVar(variableVisitor).visit(cu, null);
+        new LocalVarInitializerParser().visit(cu, null);
     }
-
     /**
      * Simple visitor implementation for extracting class relationship information
      */
@@ -65,36 +65,55 @@ public class Parser {
 //            }
 //        }
 //    }
+//
+//    private static class VariableVisitor extends VoidVisitorAdapter<Object> {
+//        @Override
+//        public void visit(VariableDeclarationExpr n, Object arg) {
+//            for (VariableDeclarator v : n.getVariables()) {
+//                System.out.println("Variable Name:" + v.getNameAsString() + " Type:" + v.getTypeAsString() + " Value:" + v.getInitializer());
+//            }
+//        }
+//    }
+//
+//    private static class MethodParam extends VoidVisitorAdapter<Object> {
+//        @Override
+//        public void visit(MethodDeclaration n, Object arg) {
+//            System.out.println("Method Name:" + n.getName() + " Parameters:" + n.getParameters());
+//        }
+//    }
+//
+//    private static class MethodVar extends VoidVisitorAdapter<Object> {
+//        private final VariableVisitor variableVisitor;
+//
+//        public MethodVar(VariableVisitor variableVisitor) {
+//            this.variableVisitor = variableVisitor;
+//        }
+//
+//        @Override
+//        public void visit(MethodDeclaration n, Object arg) {
+//            System.out.println("Method Name: " + n.getNameAsString());
+//            n.getBody().ifPresent(body -> {
+//                body.accept(variableVisitor, arg);
+//            });
+//        }
+//    }
+//
 
-    private static class VariableVisitor extends VoidVisitorAdapter<Object> {
+
+    // working on assignment
+
+    /* local variable declarations
+        specifically for local variables
+        checks if initializer is present and if not then prints warning
+    */
+    private static class LocalVarInitializerParser extends VoidVisitorAdapter<Object> {
         @Override
         public void visit(VariableDeclarationExpr n, Object arg) {
-            for (VariableDeclarator v : n.getVariables()) {
-                System.out.println("Variable Name:" + v.getNameAsString() + " Type:" + v.getTypeAsString() + " Value:" + v.getInitializer());
+            for (VariableDeclarator v: n.getVariables()){
+                if (v.getInitializer().isEmpty()){
+                    System.out.println(v.getNameAsString() + "  -- Variable is not initialized with a value");
+                }
             }
-        }
-    }
-
-    private static class MethodParam extends VoidVisitorAdapter<Object> {
-        @Override
-        public void visit(MethodDeclaration n, Object arg) {
-            System.out.println("Method Name:" + n.getName() + " Parameters:" + n.getParameters());
-        }
-    }
-
-    private static class MethodVar extends VoidVisitorAdapter<Object> {
-        private final VariableVisitor variableVisitor;
-
-        public MethodVar(VariableVisitor variableVisitor) {
-            this.variableVisitor = variableVisitor;
-        }
-
-        @Override
-        public void visit(MethodDeclaration n, Object arg) {
-            System.out.println("Method Name: " + n.getNameAsString());
-            n.getBody().ifPresent(body -> {
-                body.accept(variableVisitor, arg);
-            });
         }
     }
 }

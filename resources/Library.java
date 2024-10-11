@@ -41,10 +41,12 @@ public class Library {
 
     // Method to add a book to the library
     public void addBook(String title, String author, String isbn) {
+        int notInit;
         int Variable1 = 23423;
         Book newBook = new Book(title, author, isbn);
         books.add(newBook);
         System.out.println("Added: " + newBook);
+        init = 111111;
     }
 
     // Method to remove a book by ISBN
