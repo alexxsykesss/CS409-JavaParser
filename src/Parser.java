@@ -5,6 +5,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitor;
@@ -31,7 +32,8 @@ public class Parser {
 //        VariableVisitor variableVisitor = new VariableVisitor();
 //        new MethodVar(variableVisitor).visit(cu, null);
 
-        new LocalVarInitializerParser().visit(cu, null);
+//        new LocalVarInitializerParser().visit(cu, null);
+        new AssignMultipleVarSameLine().visit(cu, null);
     }
     /**
      * Simple visitor implementation for extracting class relationship information
@@ -101,10 +103,17 @@ public class Parser {
 
 
     // working on assignment
+    /*
+    useful links:
+
+    https://www.javadoc.io/doc/com.github.javaparser/javaparser-core/latest/index.html
+    */
 
     /* local variable declarations
         specifically for local variables
         checks if initializer is present and if not then prints warning
+
+        basic
     */
     private static class LocalVarInitializerParser extends VoidVisitorAdapter<Object> {
         @Override
@@ -114,6 +123,24 @@ public class Parser {
                     System.out.println(v.getNameAsString() + "  -- Variable is not initialized with a value");
                 }
             }
+        }
+    }
+
+    /* Check for more than one assignment in one expression
+        Checks assignment expression and if the value being assigned is another assignment expression then print warning
+
+        Only checks one deep, might need more comprehensive code
+
+        Basic implementation
+     */
+    private static class AssignMultipleVarSameLine extends VoidVisitorAdapter<Object>{
+        @Override
+        public void visit(AssignExpr n, Object arg) {
+            if(n.getValue().isAssignExpr()){
+                System.out.println(n.clone()+  " -- More than one assignment in on expression" );
+            }
+
+
         }
     }
 }

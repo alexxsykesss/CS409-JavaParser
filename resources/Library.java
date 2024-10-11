@@ -46,7 +46,12 @@ public class Library {
         Book newBook = new Book(title, author, isbn);
         books.add(newBook);
         System.out.println("Added: " + newBook);
-        init = 111111;
+        notInit = 111111;
+
+        notInit = 21;
+        a = b = 'c';
+
+
     }
 
     // Method to remove a book by ISBN
