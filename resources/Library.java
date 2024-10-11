@@ -43,6 +43,11 @@ public class Library {
     public void addBook(String title, String author, String isbn) {
         int notInit;
         int Variable1 = 23423;
+        String a, b;
+
+        for (int a = 1, b = 5; a <= 5 && b >= 1; a++, b--) {
+            System.out.println("a: " + a + ", b: " + b);
+        }
         Book newBook = new Book(title, author, isbn);
         books.add(newBook);
         System.out.println("Added: " + newBook);

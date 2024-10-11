@@ -1,12 +1,14 @@
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
@@ -32,8 +34,11 @@ public class Parser {
 //        VariableVisitor variableVisitor = new VariableVisitor();
 //        new MethodVar(variableVisitor).visit(cu, null);
 
+
+        // Assignment Visitors
 //        new LocalVarInitializerParser().visit(cu, null);
-        new AssignMultipleVarSameLine().visit(cu, null);
+//        new AssignMultipleVarSameLine().visit(cu, null);
+        new OneVariablePerDeclaration().visit(cu, null);
     }
     /**
      * Simple visitor implementation for extracting class relationship information
@@ -141,6 +146,28 @@ public class Parser {
             }
 
 
+        }
+    }
+
+    /* Checks if more than one variable is declared in one expression unless its parent is a for loop
+
+        I get the variable decorator and then check if the variables are > 1
+        Then I get the node of the parent and the check if it is a for loop
+        if not print the warning
+
+        Only check local variables, need to expand
+
+        basic implementation
+    */
+    private static class OneVariablePerDeclaration extends VoidVisitorAdapter<Object>{
+        @Override
+        public void visit(VariableDeclarationExpr n, Object arg) {
+            if(n.getVariables().size() > 1){
+                Node parentNode = n.getParentNode().orElse(null);
+                if (!(parentNode instanceof ForStmt)) {
+                    System.out.println(n.clone() + " -- More than one variable declared in one expression");
+                }
+            }
         }
     }
 }
