@@ -1,6 +1,6 @@
-
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
@@ -14,6 +14,8 @@ import com.github.javaparser.ast.visitor.VoidVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import java.io.FileInputStream;
+import java.util.List;
+import java.util.Optional;
 
 
 public class Parser {
@@ -34,11 +36,11 @@ public class Parser {
 //        VariableVisitor variableVisitor = new VariableVisitor();
 //        new MethodVar(variableVisitor).visit(cu, null);
 
-
         // Assignment Visitors
-//        new LocalVarInitializerParser().visit(cu, null);
-//        new AssignMultipleVarSameLine().visit(cu, null);
+        new LocalVarInitializerParser().visit(cu, null);
+        new AssignMultipleVarSameLine().visit(cu, null);
         new OneVariablePerDeclaration().visit(cu, null);
+        new InstanceClass().visit(cu, null);
     }
     /**
      * Simple visitor implementation for extracting class relationship information
@@ -170,4 +172,39 @@ public class Parser {
             }
         }
     }
+
+    /* Limit access to Instance and Class Variables
+    * Don't make any instance or class variable public without good reason.
+    * This breaks encapsulation. */
+
+    public static class InstanceClass extends VoidVisitorAdapter<Object> {
+
+        @Override
+        public void visit(ClassOrInterfaceDeclaration n, Object arg) {
+            System.out.println("Class Name: " + n.getName());
+
+            // check if the class has methods, if not, it's considered a data structure
+            List<MethodDeclaration> methods = n.getMethods();
+            boolean hasMethods = !methods.isEmpty();
+
+            for (FieldDeclaration field : n.getFields()) {
+                if (field.hasModifier(Modifier.Keyword.PUBLIC)) {
+                    
+                    // finding the line number
+                    int lineNumber = field.getRange().map(r -> r.begin.line).orElse(-1);
+                    
+                    if (hasMethods) {
+                        System.out.println("Public field at line " + lineNumber + ": " + field + " - Bad (Breaks Encapsulation)");
+                    } else {
+                        // class has no methods, so public fields are acceptable (data structure) - exception case
+                        // not sure if we need to print this or not
+                        System.out.println("Public field at line " + lineNumber + ": " + field + " - OK (Data Structure)");
+                    }
+                }
+            }
+
+            super.visit(n, arg);
+        }
+    }
+
 }
