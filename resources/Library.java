@@ -14,6 +14,26 @@ public class Library {
             this.isbn = isbn;
         }
 
+        // Public static class variable (should be private)
+        public static int MaxValue = 255;
+
+        // Public instance variable (should be private)
+        public String passwd = "admin123";
+
+        // Another public instance variable (should be private)
+        public int userId = 42;
+
+        // Method inside the class (so this is not a data structure)
+        public void printInfo() {
+            System.out.println("User ID: " + userId);
+            System.out.println("Password: " + passwd);
+        }
+
+        // Another method
+        public void changePassword(String newPassword) {
+            this.passwd = newPassword;
+        }
+
         public String getTitle() {
             return title;
         }
@@ -43,20 +63,10 @@ public class Library {
     public void addBook(String title, String author, String isbn) {
         int notInit;
         int Variable1 = 23423;
-        String a, b;
-
-        for (int a = 1, b = 5; a <= 5 && b >= 1; a++, b--) {
-            System.out.println("a: " + a + ", b: " + b);
-        }
         Book newBook = new Book(title, author, isbn);
         books.add(newBook);
         System.out.println("Added: " + newBook);
-        notInit = 111111;
-
-        notInit = 21;
-        a = b = 'c';
-
-
+        init = 111111;
     }
 
     // Method to remove a book by ISBN
@@ -98,3 +108,4 @@ public class Library {
         library.displayBooks();
     }
 }
+
