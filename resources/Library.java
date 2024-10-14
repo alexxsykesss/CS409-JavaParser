@@ -29,6 +29,12 @@ public class Library {
             System.out.println("Password: " + passwd);
         }
 
+        // Data structure
+        public class DataStructure {
+            public int field1;
+            public String field2;
+        }
+
         // Another method
         public void changePassword(String newPassword) {
             this.passwd = newPassword;
@@ -118,4 +124,3 @@ public class Library {
         library.displayBooks();
     }
 }
-
