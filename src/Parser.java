@@ -127,7 +127,8 @@ public class Parser {
         public void visit(VariableDeclarationExpr n, Object arg) {
             for (VariableDeclarator v: n.getVariables()){
                 if (v.getInitializer().isEmpty()){
-                    System.out.println(v.getNameAsString() + "  -- Variable is not initialized with a value");
+                    int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                    System.out.println("line " + lineNumber + ": " + v.getType() + " " + v.getNameAsString() + "  -- Variable is not initialized with a value");
                 }
             }
         }
@@ -144,10 +145,9 @@ public class Parser {
         @Override
         public void visit(AssignExpr n, Object arg) {
             if(n.getValue().isAssignExpr()){
-                System.out.println(n.clone()+  " -- More than one assignment in on expression" );
+                int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                System.out.println("line " + lineNumber + ": " + n.clone()+  " -- More than one assignment in on expression" );
             }
-
-
         }
     }
 
@@ -167,7 +167,8 @@ public class Parser {
             if(n.getVariables().size() > 1){
                 Node parentNode = n.getParentNode().orElse(null);
                 if (!(parentNode instanceof ForStmt)) {
-                    System.out.println(n.clone() + " -- More than one variable declared in one expression");
+                    int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                    System.out.println("line " + lineNumber + ": " + n.clone() + " -- More than one variable declared in one expression");
                 }
             }
         }

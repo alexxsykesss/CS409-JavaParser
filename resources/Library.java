@@ -67,6 +67,16 @@ public class Library {
         books.add(newBook);
         System.out.println("Added: " + newBook);
         init = 111111;
+
+        // 2 variable initilized in one decleration
+        String a, b;
+        // Exception in for loop (more than one var in one expression)
+        for (int a = 1, b = 5; a <= 5 && b >= 1; a++, b--) {
+            System.out.println("a: " + a + ", b: " + b);
+        }
+
+        // More than one assignment in on expression
+        a = b = 'c';
     }
 
     // Method to remove a book by ISBN
