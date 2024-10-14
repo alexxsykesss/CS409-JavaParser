@@ -182,24 +182,23 @@ public class Parser {
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Object arg) {
-            System.out.println("Class Name: " + n.getName());
 
-            // check if the class has methods, if not, it's considered a data structure
+            // Check if the class has methods, if not, it's considered a data structure
             List<MethodDeclaration> methods = n.getMethods();
             boolean hasMethods = !methods.isEmpty();
 
             for (FieldDeclaration field : n.getFields()) {
                 if (field.hasModifier(Modifier.Keyword.PUBLIC)) {
-                    
-                    // finding the line number
                     int lineNumber = field.getRange().map(r -> r.begin.line).orElse(-1);
-                    
-                    if (hasMethods) {
-                        System.out.println("Public field at line " + lineNumber + ": " + field + " - Bad (Breaks Encapsulation)");
-                    } else {
-                        // class has no methods, so public fields are acceptable (data structure) - exception case
-                        // not sure if we need to print this or not
-                        System.out.println("Public field at line " + lineNumber + ": " + field + " - OK (Data Structure)");
+
+                    for (VariableDeclarator variable : field.getVariables()) {
+                        String variableName = variable.getNameAsString();
+
+                        if (hasMethods) {
+                            System.out.println("line " + lineNumber + ": " + variableName + " -- Public instance/class variable detected, should be private");
+                        } else {
+                            System.out.println("line " + lineNumber + ": " + variableName + " -- Public instance/class variable detected, but this is ok");
+                        }
                     }
                 }
             }
