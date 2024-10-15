@@ -198,9 +198,24 @@ public class Parser {
     }
 
 
+    private static class test extends VoidVisitorAdapter<Object> {
+        @Override
+        public void visit(VariableDeclarator n, Object arg) {
+            System.out.println("name: " + n.getName());
 
+        }
+    }
 
-
-
+    private static class test2 extends VoidVisitorAdapter<Object> {
+        @Override
+        public void visit(FieldDeclaration n, Object arg) {
+            // Loop through each variable in the field declaration
+            n.getVariables().forEach(variable -> {
+                // Print the variable name
+                System.out.println("Class-level Variable: " + variable.getName());
+            });
+            super.visit(n, arg); // Call to visit other nodes
+        }
+    }
 
 }
