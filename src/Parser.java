@@ -2,16 +2,17 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.ClassExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.ast.expr.IntegerLiteralExpr;
 
 import java.io.FileInputStream;
+import java.util.*;
 
 
 public class Parser {
@@ -27,11 +28,12 @@ public class Parser {
         }
 
         // Assignment Visitors
-        new LocalVarInitializerParser().visit(cu, null);
-        new AssignMultipleVarSameLine().visit(cu, null);
-        new OneVariablePerDeclaration().visit(cu, null);
-        new InstanceClass().visit(cu, null);
-        new ConstantCheck().visit(cu, null);
+//        new LocalVarInitializerParser().visit(cu, null);
+//        new AssignMultipleVarSameLine().visit(cu, null);
+//        new OneVariablePerDeclaration().visit(cu,null);
+//        new InstanceClass().visit(cu, null);
+//        new ConstantCheck().visit(cu, null);
+        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
     }
 
     // working on assignment
@@ -136,16 +138,54 @@ public class Parser {
         }
     }
 
+    /* Problem 5
+        Declared local variables overriding public variables;
+
+        Does not detect in instance bellow as it sees the "if" statement as a lower level.
+        The var is erased when the "if" block is traversed.
+          if {
+                int checkahh;
+            }
+          int checkahh;
+
+        I think this is OK?
+        it might not be depends on what "higher level" means
+     */
+
+    private static class LocalDeclaredVarOverridePublic extends VoidVisitorAdapter<List<String>> {
+        @Override
+        public void visit(VariableDeclarator n, List<String> currentVariables) {
+            int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+
+            if (currentVariables.contains(n.getNameAsString())) {
+                System.out.println("line " + lineNumber + ": " + n.getType() + " " + n.getNameAsString() +
+                        " -- This variable declaration overrides a variable declaration at a higher level" );
+            }
+
+            // When it encounters a var declaration it adds it to the List
+            currentVariables.add(n.getNameAsString());
+        }
+
+        @Override
+        public void visit(BlockStmt n, List<String> currentVariables) {
+            int originalSize = currentVariables.size();
+
+            // directs what to visit. can put this at the end to fix problem mentioned!!!!!!!! (i think)
+            super.visit(n, currentVariables);
+
+            // Only removes newly added var when it finishes searching block fully
+            currentVariables.subList(originalSize, currentVariables.size()).clear();
+        }
+    }
 
     /* Problem 7: Avoid constants in code - Numerical constants (literals) should not be coded directly.
-     * The exceptions are -1, 0, and 1, which can appear in a for loop as counter values. */
-
+     * The exceptions are -1, 0, and 1, which can appear in a for loop as counter values.
+     */
     private static class ConstantCheck extends VoidVisitorAdapter<Object> {
         @Override
         public void visit(IntegerLiteralExpr n, Object arg) {
             int value = Integer.parseInt(n.getValue());
             Node parentNode = n.getParentNode().orElse(null);
-
             // Only check literals that are not part of a for loop
             if (!(parentNode instanceof ForStmt)) {
                 if (value != -1 && value != 0 && value != 1) {
@@ -156,6 +196,11 @@ public class Parser {
             super.visit(n, arg);
         }
     }
+
+
+
+
+
 
 
 }

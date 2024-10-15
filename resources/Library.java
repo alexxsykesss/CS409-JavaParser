@@ -14,6 +14,8 @@ public class Library {
             this.isbn = isbn;
         }
 
+        public static int Variable1;
+
         // Public static class variable (should be private)
         public static int MaxValue = 255;
 
@@ -68,11 +70,21 @@ public class Library {
     // Method to add a book to the library
     public void addBook(String title, String author, String isbn) {
         int notInit;
-        int Variable1 = 23423;
+
+        int Variable1;
+        Variable1 = 23423;
         Book newBook = new Book(title, author, isbn);
         books.add(newBook);
         System.out.println("Added: " + newBook);
         init = 111111;
+
+        if (Variable1 > 0){
+            int checkahh;
+            int notInit;
+        }
+
+        // this overides the int in the if
+        int checkahh;
 
         // 2 variable initilized in one decleration
         String a, b;
