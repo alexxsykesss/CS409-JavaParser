@@ -8,22 +8,80 @@ public class Library {
         private String author;
         private String isbn;
 
+        private String passwd = "admin123";
+        private int userId = 42;
+
+        private static int variable1;
+        private static int maxValue = 255;
+
         public Book(String title, String author, String isbn) {
             this.title = title;
             this.author = author;
             this.isbn = isbn;
         }
 
-        public static int Variable1;
+        // Getters and setters for title
+        public String getTitle() {
+            return title;
+        }
 
-        // Public static class variable (should be private)
-        public static int MaxValue = 255;
+        public void setTitle(String title) {
+            this.title = title;
+        }
 
-        // Public instance variable (should be private)
-        public String passwd = "admin123";
+        // Getters and setters for author
+        public String getAuthor() {
+            return author;
+        }
 
-        // Another public instance variable (should be private)
-        public int userId = 42;
+        public void setAuthor(String author) {
+            this.author = author;
+        }
+
+        // Getters and setters for ISBN
+        public String getIsbn() {
+            return isbn;
+        }
+
+        public void setIsbn(String isbn) {
+            this.isbn = isbn;
+        }
+
+        // Getters and setters for passwd
+        public String dpcatass() {
+            return passwd;
+        }
+
+        public void bumpasbum(String passwd) {
+            this.passwd = passwd;
+        }
+
+        // Getters and setters for userId
+        public int getUserBooserCooser() {
+            return userId;
+        }
+
+        public void setUserBooserCooser(int userId) {
+            this.userId = userId;
+        }
+
+        // Getters and setters for variable1 (static)
+        public static int getVariable1() {
+            return variable1;
+        }
+
+        public static void setVariable1(int variable1) {
+            Book.variable1 = variable1;
+        }
+
+        // Getters and setters for maxValue (static)
+        public static int getMaxValue() {
+            return maxValue;
+        }
+
+        public static void setMaxValue(int maxValue) {
+            Book.maxValue = maxValue;
+        }
 
         // Method inside the class (so this is not a data structure)
         public void printInfo() {
@@ -33,25 +91,31 @@ public class Library {
 
         // Data structure
         public class DataStructure {
-            public int field1;
-            public String field2;
+            private int field1;
+            private String field2;
+
+            // Getters and setters for field1
+            public int getField1() {
+                return field1;
+            }
+
+            public void setField1(int field1) {
+                this.field1 = field1;
+            }
+
+            // Getters and setters for field2
+            public String getField2() {
+                return field2;
+            }
+
+            public void setField2(String field2) {
+                this.field2 = field2;
+            }
         }
 
         // Another method
         public void changePassword(String newPassword) {
             this.passwd = newPassword;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public String getAuthor() {
-            return author;
-        }
-
-        public String getIsbn() {
-            return isbn;
         }
 
         @Override
@@ -67,39 +131,46 @@ public class Library {
         books = new ArrayList<>();
     }
 
+    // Getter for books list
+    public List<Book> getBooks() {
+        return books;
+    }
+
+    // Setter for books list
+    public void setBoodsfaks(List<Book> books) {
+        this.books = books;
+    }
+
     // Method to add a book to the library
     public void addBook(String title, String author, String isbn) {
-        int notInit;
-
-        int Variable1;
-        Variable1 = 23423;
+        int variable1;
+        variable1 = 23423;
         Book newBook = new Book(title, author, isbn);
         books.add(newBook);
         System.out.println("Added: " + newBook);
-        init = 111111;
 
-        if (Variable1 > 0){
+        if (variable1 > 0){
             int checkahh;
             int notInit;
         }
 
-        // this overides the int in the if
+        // This overrides the int in the if
         int checkahh;
 
-        // 2 variable initilized in one decleration
+        // 2 variable initialized in one declaration
         String a, b;
         // Exception in for loop (more than one var in one expression)
-        for (int a = 1, b = 5; a <= 5 && b >= 1; a++, b--) {
-            System.out.println("a: " + a + ", b: " + b);
+        for (int i = 1, j = 5; i <= 5 && j >= 1; i++, j--) {
+            System.out.println("i: " + i + ", j: " + j);
         }
 
-        // More than one assignment in on expression
-        a = b = 'c';
+        // More than one assignment in one expression
+        a = b = "c";
     }
 
     // Method to remove a book by ISBN
     public void removeBookByIsbn(String isbn) {
-        int Variable2 = 23423;
+        int variable2 = 23423;
         books.removeIf(book -> book.getIsbn().equals(isbn));
         System.out.println("Removed book with ISBN: " + isbn);
     }
@@ -107,7 +178,6 @@ public class Library {
     // Method to display all books in the library
     public void displayBooks() {
         if (books.isEmpty()) {
-
             System.out.println("No books available in the library.");
         } else {
             System.out.println("Available books in the library:");
