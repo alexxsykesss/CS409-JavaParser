@@ -2,16 +2,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Library {
+
     // Inner class representing a Book
     class Book {
+
         private String title;
+
         private String author;
+
         private String isbn;
 
         private String passwd = "admin123";
+
         private int userId = 42;
 
         private static int variable1;
+
         private static int maxValue = 255;
 
         public Book(String title, String author, String isbn) {
@@ -91,7 +97,9 @@ public class Library {
 
         // Data structure
         public class DataStructure {
+
             private int field1;
+
             private String field2;
 
             // Getters and setters for field1
@@ -148,22 +156,18 @@ public class Library {
         Book newBook = new Book(title, author, isbn);
         books.add(newBook);
         System.out.println("Added: " + newBook);
-
-        if (variable1 > 0){
+        if (variable1 > 0) {
             int checkahh;
             int notInit;
         }
-
         // This overrides the int in the if
         int checkahh;
-
         // 2 variable initialized in one declaration
         String a, b;
         // Exception in for loop (more than one var in one expression)
         for (int i = 1, j = 5; i <= 5 && j >= 1; i++, j--) {
             System.out.println("i: " + i + ", j: " + j);
         }
-
         // More than one assignment in one expression
         a = b = "c";
     }
@@ -176,20 +180,16 @@ public class Library {
     }
 
     // Method to display all books in the library
-
-    public String ChangeBook(int Bookid){
-        String nameB= "";
-
-        switch (Bookid){
+    public String ChangeBook(int Bookid) {
+        String nameB = "";
+        switch(Bookid) {
             case 1:
                 nameB = "wassup";
-
             case 2:
                 nameB = "one fish two fish";
-
             case 3:
                 nameB = "idk";
-
+            //Fall through
             case 4:
                 nameB = "sdihfs;ofs;dfds";
                 int r = 5;
@@ -199,6 +199,7 @@ public class Library {
         }
         return nameB;
     }
+
     public void displayBooks() {
         if (books.isEmpty()) {
             System.out.println("No books available in the library.");
@@ -213,18 +214,14 @@ public class Library {
     public static void main(String[] args) {
         // Creating a Library instance
         Library library = new Library();
-
         // Adding books to the library
         library.addBook("1984", "George Orwell", "12345");
         library.addBook("To Kill a Mockingbird", "Harper Lee", "67890");
         library.addBook("The Great Gatsby", "F. Scott Fitzgerald", "54321");
-
         // Displaying all books
         library.displayBooks();
-
         // Removing a book by ISBN
         library.removeBookByIsbn("67890");
-
         // Displaying all books after removal
         library.displayBooks();
     }

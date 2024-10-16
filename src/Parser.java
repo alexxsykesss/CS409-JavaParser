@@ -2,14 +2,19 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.comments.Comment;
+import com.github.javaparser.ast.comments.LineComment;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.*;
+import java.util.function.Consumer;
 
 
 public class Parser {
@@ -24,14 +29,21 @@ public class Parser {
             in.close();
         }
 
+
         // Assignment Visitors
 //        new LocalVarInitializerParser().visit(cu, null);
 //        new AssignMultipleVarSameLine().visit(cu, null);
 //        new OneVariablePerDeclaration().visit(cu,null);
 //        new InstanceClass().visit(cu, null);
-//        new ConstantCheck().visit(cu, null);
+//        new ConstantCheck().visit(cu,
+//        new ReliventGetSetMethod().visit(cu, new HashMap<String, Type>());null);
 //        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
-        new ReliventGetSetMethod().visit(cu, new HashMap<String, Type>());
+          new FallThroughComment().visit(cu, null);
+
+       FileOutputStream out = new FileOutputStream("resources/LibraryMODIFIED.java");
+       byte[] modfile = cu.toString().getBytes();
+        out.write(modfile);
+
     }
 
     // working on assignment
@@ -314,6 +326,37 @@ public class Parser {
         }
     }
 
+    private static class FallThroughComment extends VoidVisitorAdapter<Object>{
+
+
+        @Override
+        public void visit(SwitchStmt n, Object arg){
+            boolean nostat= false;
+            boolean statmentFound = false;
+            for(SwitchEntry s: n.getEntries()) {
+                statmentFound = false;
+
+                for (Node g : s.getStatements()) {
+
+                    if (g instanceof BreakStmt || g instanceof ContinueStmt || g instanceof ReturnStmt || g instanceof ThrowStmt) {
+
+                        statmentFound = true;
+                        if (nostat) {
+                            s.setLineComment("Fall through");
+                            nostat = false;
+                        }
+
+                    }
+                }
+
+                if (!statmentFound) {
+                    nostat = true;
+                }
+            }
+
+        }
+
+    }
 
     private static class test extends VoidVisitorAdapter<Object> {
         @Override
