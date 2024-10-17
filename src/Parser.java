@@ -36,13 +36,16 @@ public class Parser {
 //        new OneVariablePerDeclaration().visit(cu,null);
 //        new InstanceClass().visit(cu, null);
 //        new ConstantCheck().visit(cu,
-//        new ReliventGetSetMethod().visit(cu, new HashMap<String, Type>());null);
+        new ReliventGetSetMethod().visit(cu, new HashMap<String, Type>());
 //        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
-          new FallThroughComment().visit(cu, null);
 
-       FileOutputStream out = new FileOutputStream("resources/LibraryMODIFIED.java");
-       byte[] modfile = cu.toString().getBytes();
-        out.write(modfile);
+
+
+//        new FallThroughComment().visit(cu, null);
+//
+//        FileOutputStream out = new FileOutputStream("resources/LibraryMODIFIED.java");
+//        byte[] modfile = cu.toString().getBytes();
+//        out.write(modfile);
 
     }
 
@@ -208,7 +211,7 @@ public class Parser {
     }
 
     /* Problem 10: Accessors and Mutators should be named appropriately.
-           get the classes, then for each class it will get the instance variables.  The after it has that it will then
+           get the classes, then for each class it will get the instance variables.  Then it will
            look through all the methods inside that class, checking each if they are a getter or setter for any of the
            instance variables. The once this class is done it moves to the next, clearing the instance variables.
      */
@@ -216,118 +219,110 @@ public class Parser {
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Map<String, Type> instanceVars) {
-            FieldDeclarationVisitor fieldVisitor = new FieldDeclarationVisitor();
-
-            // System.out.println("Class/Interface: " + n.getNameAsString());
+            System.out.println("Class/Interface: " + n.getNameAsString());
 
             // Clears instanceVars from previous Class
             instanceVars.clear();
-            // Pass in fieldVisitor and instantVars into each class, doing a sub traversal before continuing
-            n.getFields().forEach(c -> c.accept(fieldVisitor, instanceVars));
+
+            // Get the instance variables of each class
+            n.getFields().forEach(v -> {
+                v.getVariables().forEach(var -> {
+                    instanceVars.put(var.getNameAsString(), var.getType());
+                });
+            });
 
             MethodDeclarationVisitor methodVisitor = new MethodDeclarationVisitor();
-            // System.out.println("Instance Variables: " + instanceVars);
+            System.out.println("Instance Variables: " + instanceVars);
 
             // passing in methodVisitor, doing a sub traversal before continuing
             n.getMethods().forEach(m -> m.accept(methodVisitor, instanceVars));
 
-            // System.out.println("----------------------------");
+            System.out.println("----------------------------");
 
             super.visit(n, instanceVars); // Continue visiting child nodes
         }
-    }
 
-    private static class FieldDeclarationVisitor extends VoidVisitorAdapter<Map<String,Type>> {
-        // adds the name and type of class instance variables to the hashmap
-        @Override
-        public void visit(FieldDeclaration n, Map<String,Type> instanceVars) {
-            n.getVariables().forEach(v -> {
-                instanceVars.put(v.getNameAsString(), v.getType());
-            });
-            super.visit(n, instanceVars);
-        }
-    }
+        public static class MethodDeclarationVisitor extends VoidVisitorAdapter<Map<String, Type>> {
 
-    public static class MethodDeclarationVisitor extends VoidVisitorAdapter<Map<String,Type>> {
+            @Override
+            public void visit(MethodDeclaration n, Map<String, Type> instanceVars) {
+                // instanceVars.entrySet() is all the HashMap values and the left hand side is assigning one of those sets to the "s" variable
+                for (Map.Entry<String, Type> s : instanceVars.entrySet()) {
+                    String instanceName = s.getKey();
+                    Type instanceType = s.getValue();
 
-        @Override
-        public void visit(MethodDeclaration n, Map<String,Type> instanceVars) {
-            // instanceVars.entrySet() is all the HashMap values and the left hand side is assigning one of those sets to the "s" variable
-            for (Map.Entry<String, Type> s : instanceVars.entrySet()) {
-                String instanceName = s.getKey();
-                Type instanceType = s.getValue();
+                    boolean Getter = isGetter(n, instanceName, instanceType);
+                    boolean Setter = isSetter(n, instanceName, instanceType);
 
-                boolean Getter = isGetter(n, instanceName, instanceType);
-                boolean Setter = isSetter(n, instanceName, instanceType);
+                    // checks if the current method is a getter or setter
+                    if (Setter || Getter) {
+                        String latterString = Character.toUpperCase(instanceName.charAt(0)) + instanceName.substring(1);
+                        String expectedName;
+                        String getOrSet;
 
-                // checks if the current method is a getter or setter
-                if (Setter || Getter) {
-                    String latterString = Character.toUpperCase(instanceName.charAt(0)) + instanceName.substring(1);
-                    String expectedName;
-                    String getOrSet;
+                        if (Getter) {
+                            expectedName = "get" + latterString;
+                            getOrSet = "Getter";
+                        } else {
+                            expectedName = "set" + latterString;
+                            getOrSet = "Setter";
+                        }
 
-                    if(Getter){
-                        expectedName = "get" + latterString;
-                        getOrSet = "Getter";
-                    }else{
-                        expectedName = "set" + latterString;
-                        getOrSet = "Setter";
+                        if (!Objects.equals(n.getNameAsString(), expectedName)) {
+                            int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                            System.out.println("line " + lineNumber + ": " + n.getNameAsString() + " -- " + getOrSet + " method is not appropriately named, change to " + expectedName);
+                        }
+                        break;
                     }
-
-                    if (!Objects.equals(n.getNameAsString(), expectedName)){
-                        int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                        System.out.println("line " + lineNumber + ": " + n.getNameAsString() + " -- " + getOrSet +" method is not appropriately named, change to " + expectedName);
-                    }
-                    break;
                 }
+                super.visit(n, instanceVars);
             }
-            super.visit(n, instanceVars);
-        }
 
-        private boolean isGetter(MethodDeclaration n, String vName, Type vType) {
-            // Check if the method has no parameters and the return type matches vType
-            if (n.getParameters().isEmpty() && n.getType().equals(vType)) {
-                // Check if the method body has a single return statement
-                if (n.getBody().isPresent() && n.getBody().get().getStatements().size() == 1) {
-                    if (n.getBody().get().getStatement(0) instanceof ReturnStmt returnStmt) {
-                        Expression expression = returnStmt.getExpression().orElse(null);
-                        // Check if the returned expression matches vName
-                         if (expression instanceof NameExpr nameExpr) {
-                            return nameExpr.getNameAsString().equals(vName);
+
+            private boolean isGetter(MethodDeclaration n, String vName, Type vType) {
+                // Check if the method has no parameters and the return type matches vType
+                if (n.getParameters().isEmpty() && n.getType().equals(vType)) {
+                    // Check if the method body has a single return statement
+                    if (n.getBody().isPresent() && n.getBody().get().getStatements().size() == 1) {
+                        if (n.getBody().get().getStatement(0) instanceof ReturnStmt returnStmt) {
+                            Expression expression = returnStmt.getExpression().orElse(null);
+                            // Check if the returned expression matches vName
+                            if (expression instanceof NameExpr nameExpr) {
+                                return nameExpr.getNameAsString().equals(vName);
+                            }
                         }
                     }
                 }
+                return false;
             }
-            return false;
-        }
 
-        private boolean isSetter(MethodDeclaration n, String vName, Type vType) {
-            // Check if the method has a single parameter and its type matches the variable type
-            if (n.getParameters().size() == 1 && n.getParameter(0).getType().equals(vType)) {
-                // Check if the method body is present and has a single statement
-                if (n.getBody().isPresent() && n.getBody().get().getStatements().size() == 1) {
-                    Statement statement = n.getBody().get().getStatement(0);
-                    // Check if statement is an assignment expression
-                    if (statement instanceof ExpressionStmt expressionStmt) {
-                        if (expressionStmt.getExpression() instanceof AssignExpr assignExpr) {
-                            // Check if the left-hand side of the assignment matches vType
-                            if (assignExpr.getTarget() instanceof FieldAccessExpr targetExpr) {
-                                // Check if the right-hand side matches the parameter
-                                if (assignExpr.getValue() instanceof NameExpr valueExpr) {
-                                    String parameterName = n.getParameter(0).getNameAsString();
-                                    return targetExpr.getNameAsString().equals(vName) && valueExpr.getNameAsString().equals(parameterName);
+            private boolean isSetter(MethodDeclaration n, String vName, Type vType) {
+                // Check if the method has a single parameter and its type matches the variable type
+                if (n.getParameters().size() == 1 && n.getParameter(0).getType().equals(vType)) {
+                    // Check if the method body is present and has a single statement
+                    if (n.getBody().isPresent() && n.getBody().get().getStatements().size() == 1) {
+                        Statement statement = n.getBody().get().getStatement(0);
+                        // Check if statement is an assignment expression
+                        if (statement instanceof ExpressionStmt expressionStmt) {
+                            if (expressionStmt.getExpression() instanceof AssignExpr assignExpr) {
+                                // Check if the left-hand side of the assignment matches vType
+                                if (assignExpr.getTarget() instanceof FieldAccessExpr targetExpr) {
+                                    // Check if the right-hand side matches the parameter
+                                    if (assignExpr.getValue() instanceof NameExpr valueExpr) {
+                                        String parameterName = n.getParameter(0).getNameAsString();
+                                        return targetExpr.getNameAsString().equals(vName) && valueExpr.getNameAsString().equals(parameterName);
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                return false;
             }
-            return false;
         }
     }
 
     private static class FallThroughComment extends VoidVisitorAdapter<Object>{
-
 
         @Override
         public void visit(SwitchStmt n, Object arg){
