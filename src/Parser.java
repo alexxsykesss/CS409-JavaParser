@@ -202,8 +202,8 @@ public class Parser {
 
             // checks it is not any of these
             if (!(n.getParentNode().get() instanceof VariableDeclarator)
-            && !(n.getParentNode().get() instanceof SwitchEntry)
-            && !(n.getParentNode().get() instanceof AssignExpr)) {
+            && !(n.getParentNode().get() instanceof SwitchEntry)  // dont know if this would be excluded
+            && !(n.getParentNode().get() instanceof AssignExpr)) { // dont know if this would be excluded
                     checkIntegerLiteral(n);
             }
             super.visit(n, arg);
