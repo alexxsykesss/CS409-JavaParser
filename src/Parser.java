@@ -219,8 +219,6 @@ public class Parser {
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Map<String, Type> instanceVars) {
-            System.out.println("Class/Interface: " + n.getNameAsString());
-
             // Clears instanceVars from previous Class
             instanceVars.clear();
 
@@ -232,12 +230,8 @@ public class Parser {
             });
 
             MethodDeclarationVisitor methodVisitor = new MethodDeclarationVisitor();
-            System.out.println("Instance Variables: " + instanceVars);
-
             // passing in methodVisitor, doing a sub traversal before continuing
             n.getMethods().forEach(m -> m.accept(methodVisitor, instanceVars));
-
-            System.out.println("----------------------------");
 
             super.visit(n, instanceVars); // Continue visiting child nodes
         }
@@ -278,12 +272,12 @@ public class Parser {
                 super.visit(n, instanceVars);
             }
 
-
             private boolean isGetter(MethodDeclaration n, String vName, Type vType) {
                 // Check if the method has no parameters and the return type matches vType
                 if (n.getParameters().isEmpty() && n.getType().equals(vType)) {
                     // Check if the method body has a single return statement
                     if (n.getBody().isPresent() && n.getBody().get().getStatements().size() == 1) {
+                        // checks if statement is a return statement
                         if (n.getBody().get().getStatement(0) instanceof ReturnStmt returnStmt) {
                             Expression expression = returnStmt.getExpression().orElse(null);
                             // Check if the returned expression matches vName
@@ -302,10 +296,10 @@ public class Parser {
                     // Check if the method body is present and has a single statement
                     if (n.getBody().isPresent() && n.getBody().get().getStatements().size() == 1) {
                         Statement statement = n.getBody().get().getStatement(0);
-                        // Check if statement is an assignment expression
                         if (statement instanceof ExpressionStmt expressionStmt) {
+                            // Check if statement is an assignment expression
                             if (expressionStmt.getExpression() instanceof AssignExpr assignExpr) {
-                                // Check if the left-hand side of the assignment matches vType
+                                // Checks if target is an instance variable
                                 if (assignExpr.getTarget() instanceof FieldAccessExpr targetExpr) {
                                     // Check if the right-hand side matches the parameter
                                     if (assignExpr.getValue() instanceof NameExpr valueExpr) {
