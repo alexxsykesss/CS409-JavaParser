@@ -2,19 +2,15 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.comments.Comment;
-import com.github.javaparser.ast.comments.LineComment;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Parser {
@@ -35,8 +31,8 @@ public class Parser {
 //        new AssignMultipleVarSameLine().visit(cu, null);
 //        new OneVariablePerDeclaration().visit(cu,null);
 //        new InstanceClass().visit(cu, null);
-//        new ConstantCheck().visit(cu,
-        new ReliventGetSetMethod().visit(cu, new HashMap<String, Type>());
+        new ConstantCheck().visit(cu, null);
+//        new ReliventGetSetMethod().visit(cu, new HashMap<String, Type>());
 //        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
 
 
@@ -195,18 +191,43 @@ public class Parser {
      * The exceptions are -1, 0, and 1, which can appear in a for loop as counter values.
      */
     private static class ConstantCheck extends VoidVisitorAdapter<Object> {
+
         @Override
         public void visit(IntegerLiteralExpr n, Object arg) {
-            int value = Integer.parseInt(n.getValue());
-            Node parentNode = n.getParentNode().orElse(null);
-            // Only check literals that are not part of a for loop
-            if (!(parentNode instanceof ForStmt)) {
-                if (value != -1 && value != 0 && value != 1) {
-                    int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                    System.out.println("line " + lineNumber + ": " + value + " -- Avoid using constant directly");
-                }
+
+            // checks it is not any of these
+            if (!(n.getParentNode().get() instanceof VariableDeclarator)
+            && !(n.getParentNode().get() instanceof SwitchEntry)
+            && !(n.getParentNode().get() instanceof AssignExpr)) {
+                    checkIntegerLiteral(n);
             }
             super.visit(n, arg);
+        }
+
+        private void checkIntegerLiteral(IntegerLiteralExpr n) {
+            int value = Integer.parseInt(n.getValue());
+            Node parentNode = n.getParentNode().orElse(null);
+            Node parentNode2 = n.getParentNode().orElse(null);
+
+
+            AtomicBoolean forLoop = new AtomicBoolean(false);
+            // loops throught nodes to find forStmt.
+            while (parentNode != null && !forLoop.get()) {
+                if (parentNode instanceof ForStmt forNode) {
+                    // gets the arguments of forStmt then streams to a list and searches for node to makes ure it is the current for stmt
+                    forNode.getCompare().get().stream().toList().forEach(v -> {
+                        if(v == parentNode2) {
+                            forLoop.set(true);
+                        }
+                    });
+                }
+                parentNode = parentNode.getParentNode().orElse(null);
+            }
+
+            if (!forLoop.get() || value != -1 && value != 0 && value != 1) {
+                int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+               System.out.println("line " + lineNumber + ": " + value + " -- Avoid using constant directly");
+            }
         }
     }
 
