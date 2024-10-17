@@ -9,6 +9,7 @@ import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
