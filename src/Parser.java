@@ -231,7 +231,7 @@ public class Parser {
 
             if (!forLoop.get() || value != -1 && value != 0 && value != 1) {
                 int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-               System.out.println("line " + lineNumber + ": " + value + " -- Avoid using constant directly");
+               System.out.println("line " + lineNumber + ": " + value + " in [" + parentNode2 + "] -- Avoid using constant directly");
             }
         }
     }

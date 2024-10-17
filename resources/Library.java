@@ -89,6 +89,15 @@ public class Library {
             System.out.println("Password: " + passwd);
         }
 
+        public void ifMethid() {
+            int boop;
+            int beep = 20;
+            beep = 5;
+            for(i = 1; beep > i && beep == 5; i++){
+               boop++;
+            }
+        }
+
         // Data structure
         public class DataStructure {
             private int field1;
