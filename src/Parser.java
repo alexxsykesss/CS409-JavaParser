@@ -13,6 +13,7 @@ import com.github.javaparser.ast.NodeList;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -36,9 +37,10 @@ public class Parser {
 //        new AssignMultipleVarSameLine().visit(cu, null);
 //        new OneVariablePerDeclaration().visit(cu,null);
 //        new InstanceClass().visit(cu, null);
-        new ConstantCheck().visit(cu, null);
+//        new ConstantCheck().visit(cu, null);
 //        new ReliventGetSetMethod().visit(cu, new HashMap<String, Type>());
 //        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
+        new MutableClassMembers().visit(cu, null);
 
 
 
@@ -118,10 +120,10 @@ public class Parser {
     }
 
     /* Problem 4: Limit access to Instance and Class Variables
-    * Don't make any instance or class variable public without good reason.
-    * This breaks encapsulation.
-    * Exception - one example of appropriate public instance variables is the case where the
-    * class is essentially a data structure, with no behaviour.*/
+     * Don't make any instance or class variable public without good reason.
+     * This breaks encapsulation.
+     * Exception - one example of appropriate public instance variables is the case where the
+     * class is essentially a data structure, with no behaviour.*/
 
     public static class InstanceClass extends VoidVisitorAdapter<Object> {
 
@@ -202,9 +204,9 @@ public class Parser {
 
             // checks it is not any of these
             if (!(n.getParentNode().get() instanceof VariableDeclarator)
-            && !(n.getParentNode().get() instanceof SwitchEntry)  // dont know if this would be excluded
-            && !(n.getParentNode().get() instanceof AssignExpr)) { // dont know if this would be excluded
-                    checkIntegerLiteral(n);
+                    && !(n.getParentNode().get() instanceof SwitchEntry)  // dont know if this would be excluded
+                    && !(n.getParentNode().get() instanceof AssignExpr)) { // dont know if this would be excluded
+                checkIntegerLiteral(n);
             }
             super.visit(n, arg);
         }
@@ -216,7 +218,7 @@ public class Parser {
 
 
             AtomicBoolean forLoop = new AtomicBoolean(false);
-            // loops throught nodes to find forStmt.
+            // loops through nodes to find forStmt.
             while (parentNode != null && !forLoop.get()) {
                 if (parentNode instanceof ForStmt forNode) {
                     // gets the arguments of forStmt then streams to a list and searches for node to makes ure it is the current for stmt
@@ -231,7 +233,7 @@ public class Parser {
 
             if (!forLoop.get() || value != -1 && value != 0 && value != 1) {
                 int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-               System.out.println("line " + lineNumber + ": " + value + " in [" + parentNode2 + "] -- Avoid using constant directly");
+                System.out.println("line " + lineNumber + ": " + value + " in [" + parentNode2 + "] -- Avoid using constant directly");
             }
         }
     }
@@ -392,4 +394,71 @@ public class Parser {
             super.visit(n, arg); // Call to visit other nodes
         }
     }
+
+    /* Problem 12: Do not return references to private mutable class members.
+       Returning references to internal mutable members of a class can compromise an
+       application's security, both by breaking encapsulation and by providing the
+       opportunity to corrupt the internal state of the class (whether accidentally or
+       maliciously). As a result, programs must not return references to private mutable
+       classes.
+     */
+
+    public static class MutableClassMembers extends VoidVisitorAdapter<Object> {
+
+        @Override
+        public void visit(ClassOrInterfaceDeclaration n, Object arg) {
+            System.out.println("Visiting class: " + n.getNameAsString());
+
+            // Check if the class is not final
+            if (!n.isFinal()) {
+
+                // Check for non-final fields that are private
+                n.getFields().forEach(field -> {
+                    if (field.hasModifier(Modifier.Keyword.PRIVATE) && !field.hasModifier(Modifier.Keyword.FINAL)) {
+                        field.getVariables().forEach(variable -> {
+                            String fieldName = variable.getNameAsString();
+
+                            // Check for setter methods that modify the field
+                            n.getMethods().forEach(method -> {
+                                //System.out.println("Checking method: " + method.getNameAsString());
+
+                                if (method.getNameAsString().startsWith("set") && !method.getParameters().isEmpty()) {
+                                    // Check if the method modifies the private field
+                                    method.getBody().ifPresent(body -> {
+                                        body.findAll(AssignExpr.class).forEach(assignExpr -> {
+                                            
+                                            // Check if the assignment target is a field access or a simple name
+                                            if (assignExpr.getTarget().isFieldAccessExpr()) {
+                                                FieldAccessExpr fieldAccess = assignExpr.getTarget().asFieldAccessExpr();
+                                                if (fieldAccess.getNameAsString().equals(fieldName)) {
+                                                    int lineNumber = method.getRange().map(r -> r.begin.line).orElse(-1);
+                                                    System.out.println("line " + lineNumber + ": "
+                                                            + method.getNameAsString()
+                                                            + " references private mutable class member '"
+                                                            + fieldName + "'");
+                                                }
+                                            } else if (assignExpr.getTarget().isNameExpr()) {
+                                                if (assignExpr.getTarget().asNameExpr().getNameAsString().equals(fieldName)) {
+                                                    int lineNumber = method.getRange().map(r -> r.begin.line).orElse(-1);
+                                                    System.out.println("line " + lineNumber + ": "
+                                                            + method.getNameAsString()
+                                                            + " references private mutable class member '"
+                                                            + fieldName + "'");
+                                                }
+                                            }
+                                        });
+                                    });
+                                }
+                            });
+                        });
+                    }
+                });
+            }
+            super.visit(n, arg);
+        }
+    }
+
+
+
+
 }
