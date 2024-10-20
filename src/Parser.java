@@ -1,3 +1,4 @@
+
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
@@ -40,7 +41,8 @@ public class Parser {
 //        new ConstantCheck().visit(cu, null);
 //        new ReliventGetSetMethod().visit(cu, new HashMap<String, Type>());
 //        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
-        new MutableClassMembers().visit(cu, null);
+//        new MutableClassMembers().visit(cu, null);
+        new CaughtExceptions().visit(cu, null);
 
 
 
@@ -238,6 +240,22 @@ public class Parser {
         }
     }
 
+    
+    
+    /* Problem 8: Don't ignore caught exceptions. It is very rarely correct to do nothing
+    in response to a caught exception, but when it truly is appropriate to take no action
+    whatsoever in a catch block, the reason this is justified is explained in a comment.
+    Exception: In tests, a caught exception may be ignored without comment if its name is 
+    or begins with expected. The example on the doc is a common idiom for ensuring that
+    the code under test does throw an exception to the expected type, so a comment is
+    unnecessary.*/
+    
+    private static class CaughtExceptions extends VoidVisitorAdapter<Map<String, Type>> {
+        
+    }
+    
+    
+
     /* Problem 10: Accessors and Mutators should be named appropriately.
            get the classes, then for each class it will get the instance variables.  Then it will
            look through all the methods inside that class, checking each if they are a getter or setter for any of the
@@ -411,12 +429,14 @@ public class Parser {
 
             // Check if the class is not final
             if (!n.isFinal()) {
+                //System.out.println("Class is not final, checking fields...");
 
                 // Check for non-final fields that are private
                 n.getFields().forEach(field -> {
                     if (field.hasModifier(Modifier.Keyword.PRIVATE) && !field.hasModifier(Modifier.Keyword.FINAL)) {
                         field.getVariables().forEach(variable -> {
                             String fieldName = variable.getNameAsString();
+                            //System.out.println("Checking field: " + fieldName);
 
                             // Check for setter methods that modify the field
                             n.getMethods().forEach(method -> {
@@ -426,7 +446,6 @@ public class Parser {
                                     // Check if the method modifies the private field
                                     method.getBody().ifPresent(body -> {
                                         body.findAll(AssignExpr.class).forEach(assignExpr -> {
-                                            
                                             // Check if the assignment target is a field access or a simple name
                                             if (assignExpr.getTarget().isFieldAccessExpr()) {
                                                 FieldAccessExpr fieldAccess = assignExpr.getTarget().asFieldAccessExpr();
@@ -457,8 +476,6 @@ public class Parser {
             super.visit(n, arg);
         }
     }
-
-
-
-
+    
+    
 }
