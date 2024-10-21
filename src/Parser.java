@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 public class Parser {
 
     public static void main(String[] args) throws Exception {
-        FileInputStream in = new FileInputStream("resources/Library.java");
+        FileInputStream in = new FileInputStream("multipleBadCodeInstances.java");
 
         CompilationUnit cu;
         try {
@@ -62,7 +62,7 @@ public class Parser {
         System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
         new RelevantGetSetMethod().visit(cu, new HashMap<String, Type>());
 
-        System.out.println("\nTesting problem 10: Switch: default label is included" );
+        System.out.println("\nTesting problem 11: Switch: default label is included" );
 
 
         System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
@@ -70,26 +70,15 @@ public class Parser {
 
         System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
 
-
-
-        FileOutputStream out = new FileOutputStream("resources/LibraryMODIFIED.java");
+        FileOutputStream out = new FileOutputStream("LibraryMODIFIED.java");
         byte[] modfile = cu.toString().getBytes();
         out.write(modfile);
 
     }
 
-    // working on assignment
-    /*
-    useful links:
-
-    https://www.javadoc.io/doc/com.github.javaparser/javaparser-core/latest/index.html
-    */
-
     /* Problem 1: local variable declarations
         specifically for local variables
         checks if initializer is present and if not then prints warning
-
-        basic
     */
     private static class LocalVarInitializerParser extends VoidVisitorAdapter<Object> {
 
@@ -222,6 +211,42 @@ public class Parser {
         }
     }
 
+    /* Problem 6: Switch: FallThrough is commented. Within a switch block, each
+    statement group that does not terminate abruptly (with a break, continue, return
+    or thrown exception), is marked with a comment to indicate that execution might
+    continue into the next statement group. */
+    private static class FallThroughComment extends VoidVisitorAdapter<Object>{
+
+        @Override
+        public void visit(SwitchStmt n, Object arg){
+            boolean nostat= false;
+            boolean statmentFound = false;
+            for(SwitchEntry s: n.getEntries()) {
+                statmentFound = false;
+
+                for (Node g : s.getStatements()) {
+
+                    if (g instanceof BreakStmt || g instanceof ContinueStmt || g instanceof ReturnStmt || g instanceof ThrowStmt) {
+
+                        statmentFound = true;
+                        if (nostat) {
+                            s.setLineComment("Fall through");
+                            nostat = false;
+                        }
+
+                    }
+                }
+
+                if (!statmentFound) {
+                    nostat = true;
+                }
+            }
+
+        }
+
+    }
+
+
     /* Problem 7: Avoid constants in code - Numerical constants (literals) should not be coded directly.
      * The exceptions are -1, 0, and 1, which can appear in a for loop as counter values.
      */
@@ -279,6 +304,12 @@ public class Parser {
     private static class CaughtExceptions extends VoidVisitorAdapter<Map<String, Type>> {
 
     }
+
+
+
+    /* Problem 9: Don't change a for loop iteration variable in the body of the loop.
+    * This leads to confusion, particularly in loops with a large scope. The for loop
+    * header should contain all the information about how the loop progresses. */
 
 
 
@@ -387,57 +418,13 @@ public class Parser {
             }
         }
     }
+    
 
-    private static class FallThroughComment extends VoidVisitorAdapter<Object>{
+    /* Problem 11: Switch: default label is included. Each switch statement includes 
+    a default statement group, even if it contains no code. It should also be the last
+    option in the switch statement.*/
 
-        @Override
-        public void visit(SwitchStmt n, Object arg){
-            boolean nostat= false;
-            boolean statmentFound = false;
-            for(SwitchEntry s: n.getEntries()) {
-                statmentFound = false;
 
-                for (Node g : s.getStatements()) {
-
-                    if (g instanceof BreakStmt || g instanceof ContinueStmt || g instanceof ReturnStmt || g instanceof ThrowStmt) {
-
-                        statmentFound = true;
-                        if (nostat) {
-                            s.setLineComment("Fall through");
-                            nostat = false;
-                        }
-
-                    }
-                }
-
-                if (!statmentFound) {
-                    nostat = true;
-                }
-            }
-
-        }
-
-    }
-
-    private static class test extends VoidVisitorAdapter<Object> {
-        @Override
-        public void visit(VariableDeclarator n, Object arg) {
-            System.out.println("name: " + n.getName());
-
-        }
-    }
-
-    private static class test2 extends VoidVisitorAdapter<Object> {
-        @Override
-        public void visit(FieldDeclaration n, Object arg) {
-            // Loop through each variable in the field declaration
-            n.getVariables().forEach(variable -> {
-                // Print the variable name
-                System.out.println("Class-level Variable: " + variable.getName());
-            });
-            super.visit(n, arg); // Call to visit other nodes
-        }
-    }
 
     /* Problem 12: Do not return references to private mutable class members.
        Returning references to internal mutable members of a class can compromise an
@@ -446,7 +433,6 @@ public class Parser {
        maliciously). As a result, programs must not return references to private mutable
        classes.
      */
-
     public static class MutableClassMembers extends VoidVisitorAdapter<Object> {
 
         @Override
@@ -502,6 +488,10 @@ public class Parser {
             super.visit(n, arg);
         }
     }
+
+
+    /* Problem 13: Do not expose private members of an outer class from within a
+    nested class */
 
 
 }
