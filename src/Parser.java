@@ -219,27 +219,34 @@ public class Parser {
 
         @Override
         public void visit(SwitchStmt n, Object arg){
+
             boolean nostat= false;
             boolean statmentFound = false;
+            boolean end = false;
+            EmptyStmt emptyStmt = new EmptyStmt();
+
+
             for(SwitchEntry s: n.getEntries()) {
-                statmentFound = false;
+                if(s.getStatements().isEmpty() || s.isDefault()){
 
-                for (Node g : s.getStatements()) {
+                }else {
 
-                    if (g instanceof BreakStmt || g instanceof ContinueStmt || g instanceof ReturnStmt || g instanceof ThrowStmt) {
+                    for (Node g : s.getStatements()) {
 
-                        statmentFound = true;
-                        if (nostat) {
-                            s.setLineComment("Fall through");
-                            nostat = false;
+                        if (g instanceof BreakStmt || g instanceof ContinueStmt || g instanceof ReturnStmt || g instanceof ThrowStmt) {
+                            statmentFound = true;
+
                         }
+                    }
+                    if(!statmentFound){
+                        s.getStatements().add((Statement) emptyStmt.setComment(new LineComment("Fall Through!!")));
 
                     }
+                    statmentFound = false;
+
                 }
 
-                if (!statmentFound) {
-                    nostat = true;
-                }
+
             }
 
         }
@@ -310,7 +317,32 @@ public class Parser {
     /* Problem 9: Don't change a for loop iteration variable in the body of the loop.
     * This leads to confusion, particularly in loops with a large scope. The for loop
     * header should contain all the information about how the loop progresses. */
+    private static class IncrementLoopInLoop extends VoidVisitorAdapter<Object> {
+        boolean mod = false;
+        int lineNumber = 0;
+        public void visit(ForStmt n, Object args) {
+            for(Expression g:n.getInitialization()){
+                VariableDeclarationExpr declar = g.asVariableDeclarationExpr();
+                for(int i=0; i<(g.getChildNodes().size());i++) {
+                    String varName = declar.getVariable(i).getNameAsString();
+                    if(n.getBody().toString().contains(varName + " =") || n.getBody().toString().contains(varName + "++")){
+                        mod = true;
+                    }
+                    if (mod) {
+                        lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                        System.out.println("altering loop var in loop bad! Line number "+lineNumber);
+                        mod = false;
+                    }
+                }
+            }
 
+            // check if intinilaize loop variable is on the left of any expressions if so BAD if not LIT
+        }
+
+
+
+
+    }
 
 
     /* Problem 10: Accessors and Mutators should be named appropriately.
