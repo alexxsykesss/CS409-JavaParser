@@ -1,4 +1,3 @@
-
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
@@ -34,23 +33,48 @@ public class Parser {
 
 
         // Assignment Visitors
-//        new LocalVarInitializerParser().visit(cu, null);
-//        new AssignMultipleVarSameLine().visit(cu, null);
-//        new OneVariablePerDeclaration().visit(cu,null);
-//        new InstanceClass().visit(cu, null);
-//        new ConstantCheck().visit(cu, null);
-//        new ReliventGetSetMethod().visit(cu, new HashMap<String, Type>());
-//        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
-//        new MutableClassMembers().visit(cu, null);
+        System.out.println("\nTesting problem 1: variable initialisation");
+        new LocalVarInitializerParser().visit(cu, null);
+
+        System.out.println("\nTesting problem 2: Keep assignments simple");
+        new AssignMultipleVarSameLine().visit(cu, null);
+
+        System.out.println("\nTesting problem 3: One variable per declaration");
+        new OneVariablePerDeclaration().visit(cu,null);
+
+        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
+        new InstanceClass().visit(cu, null);
+
+        System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
+        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
+
+        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
+        new FallThroughComment().visit(cu, null);
+
+        System.out.println("\nTesting problem 7: Avoid constants in code");
+        new ConstantCheck().visit(cu, null);
+
+        System.out.println("\nTesting problem 8: Don't ignore caught exceptions" );
         new CaughtExceptions().visit(cu, null);
 
+        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
+
+        System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
+        new RelevantGetSetMethod().visit(cu, new HashMap<String, Type>());
+
+        System.out.println("\nTesting problem 10: Switch: default label is included" );
 
 
-//        new FallThroughComment().visit(cu, null);
-//
-//        FileOutputStream out = new FileOutputStream("resources/LibraryMODIFIED.java");
-//        byte[] modfile = cu.toString().getBytes();
-//        out.write(modfile);
+        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
+        new MutableClassMembers().visit(cu, null);
+
+        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
+
+
+
+        FileOutputStream out = new FileOutputStream("resources/LibraryMODIFIED.java");
+        byte[] modfile = cu.toString().getBytes();
+        out.write(modfile);
 
     }
 
@@ -68,6 +92,8 @@ public class Parser {
         basic
     */
     private static class LocalVarInitializerParser extends VoidVisitorAdapter<Object> {
+
+
         @Override
         public void visit(VariableDeclarationExpr n, Object arg) {
             for (VariableDeclarator v: n.getVariables()){
@@ -240,28 +266,28 @@ public class Parser {
         }
     }
 
-    
-    
+
+
     /* Problem 8: Don't ignore caught exceptions. It is very rarely correct to do nothing
     in response to a caught exception, but when it truly is appropriate to take no action
     whatsoever in a catch block, the reason this is justified is explained in a comment.
-    Exception: In tests, a caught exception may be ignored without comment if its name is 
+    Exception: In tests, a caught exception may be ignored without comment if its name is
     or begins with expected. The example on the doc is a common idiom for ensuring that
     the code under test does throw an exception to the expected type, so a comment is
     unnecessary.*/
-    
+
     private static class CaughtExceptions extends VoidVisitorAdapter<Map<String, Type>> {
-        
+
     }
-    
-    
+
+
 
     /* Problem 10: Accessors and Mutators should be named appropriately.
            get the classes, then for each class it will get the instance variables.  Then it will
            look through all the methods inside that class, checking each if they are a getter or setter for any of the
            instance variables. The once this class is done it moves to the next, clearing the instance variables.
      */
-    private static class ReliventGetSetMethod extends VoidVisitorAdapter<Map<String,Type>> {
+    private static class RelevantGetSetMethod extends VoidVisitorAdapter<Map<String,Type>> {
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Map<String, Type> instanceVars) {
@@ -476,6 +502,6 @@ public class Parser {
             super.visit(n, arg);
         }
     }
-    
-    
+
+
 }
