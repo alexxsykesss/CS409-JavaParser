@@ -628,11 +628,10 @@ public class Parser {
             });
 
             enumList.put(n.getNameAsString(), fieldNames);
-            super.visit(n, args);  // Visit other parts of the enum if needed
+            super.visit(n, args);
         }
     }
 
-    // Second visitor: Switch statements
     private static class SwitchStatementVisitor extends VoidVisitorAdapter<Object> {
 
         @Override
@@ -654,7 +653,7 @@ public class Parser {
                 lineNumber = n.getEntries().get(i - 1).getRange().map(r -> r.begin.line).orElse(-1);
                 System.out.println("No default statment BAD! at line: " + lineNumber);
             }
-                super.visit(n, args);  // Continue visiting other nodes
+                super.visit(n, args);
         }
 
 
