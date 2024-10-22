@@ -219,16 +219,17 @@ public class Library {
         String nameB= "";
 
         switch (Bookid){
-            case 1:
+            case Color.RED:
                 nameB = "wassup";
 
-            case 2:
+            case  Color.BLUE:
                 nameB = "one fish two fish";
 
-            case 3:
+            case Color.GREEN:
                 nameB = "idk";
 
-            case 4:
+            case Color.YELLOW:
+                Color.YELLOW
                 nameB = "sdihfs;ofs;dfds";
                 int r = 5;
                 continue;
@@ -294,5 +295,6 @@ public class Outside {
 public enum Color {
     RED,
     GREEN,
-    BLUE
+    BLUE,
+    YELLOW
 }
