@@ -23,8 +23,8 @@ public class Parser {
 
     public static void main(String[] args) throws Exception {
         //FileInputStream in = new FileInputStream("resources/multipleBadCodeInstances.java");
-        FileInputStream in = new FileInputStream("resources/mutableInstance/mutableReferenceExposer.java");
-        //FileInputStream in = new FileInputStream("resources/custom/Library.java");
+        //FileInputStream in = new FileInputStream("resources/mutableInstance/mutableReferenceExposer.java");
+        FileInputStream in = new FileInputStream("resources/custom/Library.java");
 
         CompilationUnit cu;
         try {
@@ -67,8 +67,8 @@ public class Parser {
 //        System.out.println("\nTesting problem 11: Switch: default label is included" );
 //
 //
-        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
-        new MutableClassMembers().visit(cu, null);
+//        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
+//        new MutableClassMembers().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
 //        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
@@ -76,6 +76,10 @@ public class Parser {
 //        FileOutputStream out = new FileOutputStream("LibraryMODIFIED.java");
 //        byte[] modfile = cu.toString().getBytes();
 //        out.write(modfile);
+
+        new EnumVisitor().visit(cu, null);
+        new SwitchStatementVisitor().visit(cu, null);
+
 
     }
 
@@ -613,4 +617,46 @@ public class Parser {
         }
     }
 
+    private static class EnumVisitor extends VoidVisitorAdapter<Object> {
+        static HashMap<String, ArrayList<String>> enumList = new HashMap<>();
+
+        @Override
+        public void visit(EnumDeclaration n, Object args) {
+            ArrayList<String> fieldNames = new ArrayList<>();
+            n.getEntries().forEach(entry -> {
+                fieldNames.add(entry.getNameAsString());
+            });
+
+            enumList.put(n.getNameAsString(), fieldNames);
+            super.visit(n, args);  // Visit other parts of the enum if needed
+        }
+    }
+
+    // Second visitor: Switch statements
+    private static class SwitchStatementVisitor extends VoidVisitorAdapter<Object> {
+
+        @Override
+        public void visit(SwitchStmt n, Object args) {
+
+            System.out.println(EnumVisitor.enumList);
+
+            int lineNumber = 0;
+
+            Boolean isenum = false;
+            int i = n.getEntries().size();
+
+            for(Node sigma: n.getEntries()){
+
+            }
+            //  if(n.getSelector() instanceof )
+
+            if (!(n.getEntries().getLast().get().isDefault())) {
+                lineNumber = n.getEntries().get(i - 1).getRange().map(r -> r.begin.line).orElse(-1);
+                System.out.println("No default statment BAD! at line: " + lineNumber);
+            }
+                super.visit(n, args);  // Continue visiting other nodes
+        }
+
+
+    }
 }
