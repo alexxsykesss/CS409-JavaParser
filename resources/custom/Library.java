@@ -133,10 +133,39 @@ public class Library {
         }
     }
 
+    public class SecondClass {
+        // Fields
+        private String name;
+        private int age;
+        private boolean isActive;
+
+        // Constructor
+        public SecondClass(String name, int age, boolean isActive) {
+            this.name = name;
+            this.age = age;
+            this.isActive = isActive;
+        }
+
+        // Getter for name
+            public void getPoint() {
+                System.out.println(xist + "," + this.yinst);
+            }
+
+            // Method to display info
+        public void displayInfo() {
+            System.out.println("Name: " + name);
+            System.out.println("Age: " + age);
+            System.out.println("Active: " + isActive);
+        }
+    }
+
     // List to store books in the library
     private List<Book> books;
 
-    public Library() {
+        private int xist;
+        private int yinst;
+
+        public Library() {
         books = new ArrayList<>();
     }
 
@@ -236,5 +265,28 @@ public class Library {
 
         // Displaying all books after removal
         library.displayBooks();
+    }
+}
+
+public class Outside {
+    private int field1;
+    private String field2;
+
+    // Getters and setters for field1
+    public int getField1() {
+        return field1;
+    }
+
+    public void setField1(int field1) {
+        this.field1 = field1;
+    }
+
+    // Getters and setters for field2
+    public String getField2() {
+        return field2;
+    }
+
+    public void setField2(String field2) {
+        this.field2 = field2;
     }
 }
