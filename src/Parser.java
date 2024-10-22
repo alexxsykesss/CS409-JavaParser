@@ -350,6 +350,12 @@ public class Parser {
            get the classes, then for each class it will get the instance variables.  Then it will
            look through all the methods inside that class, checking each if they are a getter or setter for any of the
            instance variables. The once this class is done it moves to the next, clearing the instance variables.
+
+
+           finds that is not explicitly said to be an error:
+           private int getVar(){
+            return aVar;
+           }
      */
     private static class RelevantGetSetMethod extends VoidVisitorAdapter<Map<String,Type>> {
 
