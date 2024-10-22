@@ -22,7 +22,8 @@ import java.util.function.Consumer;
 public class Parser {
 
     public static void main(String[] args) throws Exception {
-        FileInputStream in = new FileInputStream("multipleBadCodeInstances.java");
+        FileInputStream in = new FileInputStream("resources/multipleBadCodeInstances.java");
+        //FileInputStream in = new FileInputStream("resources/custom/Library.java");
 
         CompilationUnit cu;
         try {
@@ -33,46 +34,46 @@ public class Parser {
 
 
         // Assignment Visitors
-        System.out.println("\nTesting problem 1: variable initialisation");
-        new LocalVarInitializerParser().visit(cu, null);
-
-        System.out.println("\nTesting problem 2: Keep assignments simple");
-        new AssignMultipleVarSameLine().visit(cu, null);
-
-        System.out.println("\nTesting problem 3: One variable per declaration");
-        new OneVariablePerDeclaration().visit(cu,null);
-
-        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
-        new InstanceClass().visit(cu, null);
-
-        System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
-        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
-
-        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
-        new FallThroughComment().visit(cu, null);
-
-        System.out.println("\nTesting problem 7: Avoid constants in code");
-        new ConstantCheck().visit(cu, null);
-
-        System.out.println("\nTesting problem 8: Don't ignore caught exceptions" );
-        new CaughtExceptions().visit(cu, null);
-
-        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
+//        System.out.println("\nTesting problem 1: variable initialisation");
+//        new LocalVarInitializerParser().visit(cu, null);
+//
+//        System.out.println("\nTesting problem 2: Keep assignments simple");
+//        new AssignMultipleVarSameLine().visit(cu, null);
+//
+//        System.out.println("\nTesting problem 3: One variable per declaration");
+//        new OneVariablePerDeclaration().visit(cu,null);
+//
+//        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
+//        new InstanceClass().visit(cu, null);
+//
+//        System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
+//        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
+//
+//        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
+//        new FallThroughComment().visit(cu, null);
+//
+//        System.out.println("\nTesting problem 7: Avoid constants in code");
+//        new ConstantCheck().visit(cu, null);
+//
+//        System.out.println("\nTesting problem 8: Don't ignore caught exceptions" );
+//        new CaughtExceptions().visit(cu, null);
+//
+//        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
 
         System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
-        new RelevantGetSetMethod().visit(cu, new HashMap<String, Type>());
+        new RelevantGetSetMethod().visit(cu, new HashMap<>());
 
-        System.out.println("\nTesting problem 11: Switch: default label is included" );
-
-
-        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
-        new MutableClassMembers().visit(cu, null);
-
-        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
-
-        FileOutputStream out = new FileOutputStream("LibraryMODIFIED.java");
-        byte[] modfile = cu.toString().getBytes();
-        out.write(modfile);
+//        System.out.println("\nTesting problem 11: Switch: default label is included" );
+//
+//
+//        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
+//        new MutableClassMembers().visit(cu, null);
+//
+//        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
+//
+//        FileOutputStream out = new FileOutputStream("LibraryMODIFIED.java");
+//        byte[] modfile = cu.toString().getBytes();
+//        out.write(modfile);
 
     }
 
@@ -434,12 +435,13 @@ public class Parser {
                         if (statement instanceof ExpressionStmt expressionStmt) {
                             // Check if statement is an assignment expression
                             if (expressionStmt.getExpression() instanceof AssignExpr assignExpr) {
-                                // Checks if target is an instance variable
-                                if (assignExpr.getTarget() instanceof FieldAccessExpr targetExpr) {
-                                    // Check if the right-hand side matches the parameter
-                                    if (assignExpr.getValue() instanceof NameExpr valueExpr) {
-                                        String parameterName = n.getParameter(0).getNameAsString();
-                                        return targetExpr.getNameAsString().equals(vName) && valueExpr.getNameAsString().equals(parameterName);
+                                if (assignExpr.getValue() instanceof NameExpr valueExpr) {
+                                    String parameterName = n.getParameter(0).getNameAsString();
+                                    // pass if assigning var directly or 'this.var'
+                                    if (assignExpr.getTarget() instanceof NameExpr nameExpr) {
+                                        return nameExpr.getNameAsString().equals(vName) && valueExpr.getNameAsString().equals(parameterName);
+                                    } else if (assignExpr.getTarget() instanceof FieldAccessExpr fieldAccessExpr) {
+                                        return fieldAccessExpr.getNameAsString().equals(vName) && valueExpr.getNameAsString().equals(parameterName);
                                     }
                                 }
                             }
