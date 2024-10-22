@@ -298,7 +298,30 @@ public class Parser {
     the code under test does throw an exception to the expected type, so a comment is
     unnecessary.*/
 
-    private static class CaughtExceptions extends VoidVisitorAdapter<Map<String, Type>> {
+    public static class CaughtExceptions extends VoidVisitorAdapter<Object> {
+
+        @Override
+        public void visit(CatchClause n, Object arg) {
+            super.visit(n, arg);
+
+            String exceptionName = n.getParameter().getNameAsString();
+
+            // Check if the catch block is empty
+            boolean isEmptyBlock = n.getBody().getStatements().isEmpty();
+
+            // Check if the exception variable starts with "expected"
+            boolean isExpected = exceptionName.startsWith("expected");
+
+            // Get any comments associated with the catch clause
+            boolean hasComment = n.getComment().isPresent();
+
+            // If the catch block is empty and the exception doesn't start with "expected"
+            if (isEmptyBlock && !(isExpected) && !hasComment) {
+                int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                String catchClauseCode = n.toString().trim();
+                System.out.println("line " + lineNumber + ": " + catchClauseCode + " -- Empty catch block found");
+            }
+        }
 
     }
 
