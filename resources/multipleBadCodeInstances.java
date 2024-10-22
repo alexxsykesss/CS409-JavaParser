@@ -19,12 +19,33 @@ public class multipleBadCodeInstances {
         }
     }
 
+
+    // Unacceptable public instance variable
+    public class roomNumber{
+        String building;
+        int room;
+        public roomNumber(String building, int room){
+            this.building = building;
+            this.room = room;
+        }
+
+        public void thisISDoingMoreThanJustHoldingData(){
+            fldi1 = room;
+            fldi2 = room * room;
+            fls1 = building;
+            while (fldi1 < room * room){
+                fldi1 = room + room;
+            }
+        }
+    }
+
     // The following are multiple declarations and should be flagged up
     private int fldi1, fldi2;
     private localClass fldc1, fldc2;
 
-    // public instance variable
+    // public instance variables
     public double fldd;
+    public roomNumber rn;
 
     // public instance AND multiple declaration
     public String fls1, fls2;
@@ -97,7 +118,7 @@ public class multipleBadCodeInstances {
 
     public int switchStatementErrors(String param){
         // missing fall through comment (3 times)
-        // missing defaul statement
+        // missing default statement
         int result = 0;
         switch(param) {
             case "one":
@@ -110,6 +131,48 @@ public class multipleBadCodeInstances {
                 result = 3;
             }
         return result;
+    }
+
+    public double switchStatementErrors2(int response){
+        // missing fall through comment (once)
+        // wrong location of default statement
+        double result = 0.0;
+        switch(response) {
+            case 1:
+            case 2:
+                result = result + response;
+                break;
+            case 3:
+                result = result/response;
+                result = 3;
+            default:
+                result = response * response;
+                break;
+            case 4:
+                result  = result * response;
+                break;
+        }
+        return result;
+    }
+
+    enum Vowels {A,E,I,O,U};
+    public double switchStatementErrors3(Vowels v){
+        // missing default (failure to explicitly cover all enum values)
+        // wrong location of default statement
+        switch(v) {
+            case A:
+                System.out.println("Aay");
+                break;
+            case E:
+                System.out.println("Eee");
+                break;
+            case I:
+                System.out.println("Eye");
+                break;
+            case O:
+                System.out.println("Oh");
+                break;
+        }
     }
 
     public void constantUsageErrors(int a, char b, double c, String d){
@@ -160,3 +223,4 @@ public class multipleBadCodeInstances {
         }
     }
 }
+
