@@ -22,7 +22,8 @@ import java.util.function.Consumer;
 public class Parser {
 
     public static void main(String[] args) throws Exception {
-        FileInputStream in = new FileInputStream("resources/multipleBadCodeInstances.java");
+        //FileInputStream in = new FileInputStream("resources/multipleBadCodeInstances.java");
+        FileInputStream in = new FileInputStream("resources/mutableInstance/mutableReferenceExposer.java");
         //FileInputStream in = new FileInputStream("resources/custom/Library.java");
 
         CompilationUnit cu;
@@ -66,11 +67,11 @@ public class Parser {
 //        System.out.println("\nTesting problem 11: Switch: default label is included" );
 //
 //
-//        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
-//        new MutableClassMembers().visit(cu, null);
+        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
+        new MutableClassMembers().visit(cu, null);
 //
-        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
-        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
+//        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
+//        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
 //
 //        FileOutputStream out = new FileOutputStream("LibraryMODIFIED.java");
 //        byte[] modfile = cu.toString().getBytes();
