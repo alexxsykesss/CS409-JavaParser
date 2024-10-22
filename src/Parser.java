@@ -589,14 +589,14 @@ public class Parser {
                             // with 'this.'
                             n.findAll(FieldAccessExpr.class).forEach(fieldAccess -> {
                                 if (outerFieldsNames.contains(fieldAccess.getNameAsString())) {
-                                    System.out.println("Exposed private parent field: '" + fieldAccess.getNameAsString() + "' in method: " + n.getNameAsString() + " --- Change method to private");
+                                    System.out.println("Exposed private parent field '" + fieldAccess.getNameAsString() + "' in method: " + n.getNameAsString() + " --- Change method to private");
                                 }
                             });
 
                             // without 'this.'
                             n.findAll(NameExpr.class).forEach(nameExpr -> {
                                 if (outerFieldsNames.contains(nameExpr.getNameAsString())) {
-                                    System.out.println("Exposed private parent field: '" + nameExpr.getNameAsString() + "' in method: " + n.getNameAsString() + " --- Change method to private");
+                                    System.out.println("Exposed private parent field '" + nameExpr.getNameAsString() + "' in method: " + n.getNameAsString() + " --- Change method to private");
                                 }
                             });
                         }
