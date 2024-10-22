@@ -290,3 +290,9 @@ public class Outside {
         this.field2 = field2;
     }
 }
+
+public enum Color {
+    RED,
+    GREEN,
+    BLUE
+}
