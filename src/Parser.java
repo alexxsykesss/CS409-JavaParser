@@ -41,11 +41,11 @@ public class Parser {
 //        System.out.println("\nTesting problem 2: Keep assignments simple");
 //        new AssignMultipleVarSameLine().visit(cu, null);
 //
-        System.out.println("\nTesting problem 3: One variable per declaration");
-        new OneVariablePerDeclaration().visit(cu,null);
+//        System.out.println("\nTesting problem 3: One variable per declaration");
+//        new OneVariablePerDeclaration().visit(cu,null);
 //
-//        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
-//        new InstanceClass().visit(cu, null);
+        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
+        new InstanceClass().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
 //        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
@@ -96,6 +96,7 @@ public class Parser {
                     System.out.println("line " + lineNumber + ": " + v.getType() + " " + v.getNameAsString() + "  -- Variable is not initialised with a value");
                 }
             });
+            super.visit(n, arg);
         }
     }
 
@@ -111,6 +112,7 @@ public class Parser {
                 int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
                 System.out.println("line " + lineNumber + ": " + n.clone() + " -- More than one assignment in on statement");
             }
+            super.visit(n, arg);
         }
     }
 
@@ -131,6 +133,7 @@ public class Parser {
                     System.out.println("line " + lineNumber + ": " + n.setComment(null).clone() + " -- More than one variable declared in one declaration");
                 }
             }
+            super.visit(n, arg);
         }
 
         @Override
@@ -139,6 +142,7 @@ public class Parser {
                 int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
                 System.out.println("line " + lineNumber + ": " + n.setComment(null).clone() + " -- More than one variable declared in one declaration");
             }
+            super.visit(n, arg);
         }
     }
 
@@ -152,11 +156,10 @@ public class Parser {
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Object arg) {
-
             boolean hasMethods = !n.getMethods().isEmpty();
 
-            for (FieldDeclaration field : n.getFields()) {
-                if (field.hasModifier(Modifier.Keyword.PUBLIC)) {
+            n.getFields().forEach(field -> {
+                if (!field.hasModifier(Modifier.Keyword.PRIVATE)) {
                     int lineNumber = field.getRange().map(r -> r.begin.line).orElse(-1);
 
                     field.getVariables().forEach(variable -> {
@@ -171,8 +174,7 @@ public class Parser {
                         }
                     });
                 }
-            }
-
+            });
             super.visit(n, arg);
         }
     }
