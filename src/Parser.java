@@ -481,25 +481,47 @@ public class Parser {
 
         @Override
         public void visit(SwitchStmt n, Object args) {
-
-            System.out.println(EnumVisitor.enumList);
-
+            int checker = 0;
+            int enumlen= 0;
             int lineNumber = 0;
+            boolean defaultpres = n.getEntries().getLast().get().isDefault();
 
-            Boolean isenum = false;
-            int i = n.getEntries().size();
-
-            for (Node sigma : n.getEntries()) {
-
+            for (String i : EnumVisitor.enumList.keySet()) {
+                enumlen = EnumVisitor.enumList.get(i).size();
             }
-            //  if(n.getSelector() instanceof )
 
-            if (!(n.getEntries().getLast().get().isDefault())) {
-                lineNumber = n.getEntries().get(i - 1).getRange().map(r -> r.begin.line).orElse(-1);
-                System.out.println("No default statment BAD! at line: " + lineNumber);
+            String enumL = EnumVisitor.enumList.values().toString().replace("[", "");
+            enumL = enumL.replace("]", "");
+
+
+            String EnumT = n.getEntries().get(0).getLabels().toString().replace("[", "");
+            EnumT = EnumT.replace("]", "");
+
+            if (enumL.contains(EnumT)) {
+
+                String compare = "";
+                for (SwitchEntry sigma : n.getEntries()) {
+
+                    compare = sigma.getLabels().toString().replace("[", "");
+                    compare = compare.replace("]", "");
+                    if (enumL.contains(compare)) {
+                        checker++;
+                    }
+                }
+            }
+            if(defaultpres){
+                checker--;
+            }
+            if (checker == (enumlen)) {
+            } else {
+                if (!(defaultpres)) {
+                    lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                    System.out.println("No default statment BAD! at line: " + lineNumber);
+                }
             }
             super.visit(n, args);
         }
+
 
 
         /* Problem 12: Do not return references to private mutable class members.
