@@ -208,7 +208,8 @@ public class Parser {
     /* Problem 6: Switch: FallThrough is commented. Within a switch block, each
     statement group that does not terminate abruptly (with a break, continue, return
     or thrown exception), is marked with a comment to indicate that execution might
-    continue into the next statement group. */
+    continue into the next statement group.
+     Blank cases are ignored and arnt given a comment*/
     private static class FallThroughComment extends VoidVisitorAdapter<Object> {
         @Override
         public void visit(SwitchStmt n, Object arg) {
@@ -229,9 +230,7 @@ public class Parser {
                     statmentFound = false;
                 }
             }
-
         }
-
     }
 
 
