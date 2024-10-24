@@ -44,11 +44,11 @@ public class Parser {
 //        System.out.println("\nTesting problem 3: One variable per declaration");
 //        new OneVariablePerDeclaration().visit(cu,null);
 //
-        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
-        new InstanceClass().visit(cu, null);
+//        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
+//        new InstanceClass().visit(cu, null);
 //
-//        System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
-//        new LocalDeclaredVarOverridePublic().visit(cu,new ArrayList<>());
+        System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
+        new LocalDeclaredVarOverridePublic().visit(cu,null);
 //
 //        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
 //        new FallThroughComment().visit(cu, null);
@@ -130,7 +130,7 @@ public class Parser {
                 Node parentNode = n.getParentNode().orElse(null);
                 if (!(parentNode instanceof ForStmt)) {
                     int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                    System.out.println("line " + lineNumber + ": " + n.setComment(null).clone() + " -- More than one variable declared in one declaration");
+                    System.out.println("line " + lineNumber + ": " + n.removeComment().clone() + " -- More than one variable declared in one declaration");
                 }
             }
             super.visit(n, arg);
@@ -139,8 +139,11 @@ public class Parser {
         @Override
         public void visit(FieldDeclaration n, Object arg) {
             if (n.getVariables().size() > 1) {
+                FieldDeclaration declaration = (FieldDeclaration) n.removeComment().clone();
+                declaration.getModifiers().clear();
+
                 int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                System.out.println("line " + lineNumber + ": " + n.setComment(null).clone() + " -- More than one variable declared in one declaration");
+                System.out.println("line " + lineNumber + ": " + declaration + " -- More than one variable declared in one declaration");
             }
             super.visit(n, arg);
         }
@@ -153,11 +156,9 @@ public class Parser {
      * class is essentially a data structure, with no behaviour.*/
 
     public static class InstanceClass extends VoidVisitorAdapter<Object> {
-
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Object arg) {
             boolean hasMethods = !n.getMethods().isEmpty();
-
             n.getFields().forEach(field -> {
                 if (!field.hasModifier(Modifier.Keyword.PRIVATE)) {
                     int lineNumber = field.getRange().map(r -> r.begin.line).orElse(-1);
@@ -181,34 +182,24 @@ public class Parser {
         Declared local variables overriding public variables;
         Does not detect in instance bellow as it sees the "if" statement as a lower level.
         The var is erased when the "if" block is traversed.
-          if {
-                int checkahh;
-            }
-          int checkahh;
-        I think this is OK?
-        depends on what "higher level" means
      */
 
-    private static class LocalDeclaredVarOverridePublic extends VoidVisitorAdapter<List<String>> {
+    private static class LocalDeclaredVarOverridePublic extends VoidVisitorAdapter<Object> {
+        static ArrayList<String> currentVariables = new ArrayList<>();
         @Override
-        public void visit(VariableDeclarator n, List<String> currentVariables) {
-            int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-
+        public void visit(VariableDeclarator n, Object arg) {
             if (currentVariables.contains(n.getNameAsString())) {
-                System.out.println("line " + lineNumber + ": " + n.getType() + " " + n.getNameAsString() +
-                        " -- This variable declaration overrides a variable declaration at a higher level");
+                int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                System.out.println("line " + lineNumber + ": " + n.getType() + " " + n.getNameAsString() + " -- This variable declaration overrides a variable declaration at a higher level");
             }
-
             // When it encounters a var declaration it adds it to the List
             currentVariables.add(n.getNameAsString());
         }
 
         @Override
-        public void visit(BlockStmt n, List<String> currentVariables) {
+        public void visit(BlockStmt n, Object arg) {
             int originalSize = currentVariables.size();
-
-            // directs what to visit. can put this at the end to fix problem mentioned!!!!!!!! (i think)
-            super.visit(n, currentVariables);
+            super.visit(n, null);
 
             // Only removes newly added var when it finishes searching block fully
             currentVariables.subList(originalSize, currentVariables.size()).clear();
