@@ -55,20 +55,20 @@ public class Parser {
 //        byte[] modfile = cu.toString().getBytes();
 //        out.write(modfile);
 
-        System.out.println("\nTesting problem 7: Avoid constants in code");
-        new ConstantCheck().visit(cu, null);
+  //      System.out.println("\nTesting problem 7: Avoid constants in code");
+     //   new ConstantCheck().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 8: Don't ignore caught exceptions");
 //        new CaughtExceptions().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
-//
+//        new IncrementLoopInLoop().visit(cu,null);
 //        System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
-//        new RelevantGetSetMethod().visit(cu, null);
+  //        new RelevantGetSetMethod().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 11: Switch: default label is included" );
-//
-//
+            new EnumVisitor().visit(cu,null);
+            new SwitchStatementVisitor().visit(cu,null);
 //        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
 //        new MutableClassMembers().visit(cu, null);
 //
@@ -483,6 +483,7 @@ public class Parser {
         public void visit(SwitchStmt n, Object args) {
             int checker = 0;
             int enumlen= 0;
+            boolean isenum = false;
             int lineNumber = 0;
             boolean defaultpres = n.getEntries().getLast().get().isDefault();
 
@@ -498,6 +499,7 @@ public class Parser {
             EnumT = EnumT.replace("]", "");
 
             if (enumL.contains(EnumT)) {
+                isenum = true;
 
                 String compare = "";
                 for (SwitchEntry sigma : n.getEntries()) {
@@ -514,9 +516,13 @@ public class Parser {
             }
             if (checker == (enumlen)) {
             } else {
-                if (!(defaultpres)) {
+                if(isenum &&!(defaultpres)){
+                    lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                    System.out.println("No default statment + not all enum types covered BAD! at line: " + lineNumber);
+                }else if (!(defaultpres)) {
                     lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
                     System.out.println("No default statment BAD! at line: " + lineNumber);
+
                 }
             }
             super.visit(n, args);
