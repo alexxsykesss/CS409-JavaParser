@@ -12,7 +12,7 @@ public class squeakyClean {
             aVar = i;
         }
 
-        private int getVar(){
+        private int getAVar(){
             return aVar;
         }
     }
@@ -115,7 +115,7 @@ public class squeakyClean {
                 break;
             default:
                 result = 99;
-            }
+        }
         return result;
     }
 
@@ -194,7 +194,7 @@ public class squeakyClean {
     }
 
     private class accessPoint{
-        public int exposePrivateData(){
+        public int getVeryPrivateData(){
             return veryPrivateData;
         }
     }

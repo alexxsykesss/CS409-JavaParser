@@ -98,7 +98,7 @@ public class multipleBadCodeInstances {
         a = b = c;
 
         // OK
-        fldd = Math.pi;
+        fldd = Math.PI;
 
         if (a == b) {
             // duplicate local declaration
@@ -117,7 +117,7 @@ public class multipleBadCodeInstances {
     }
 
     public int switchStatementErrors(String param){
-        // missing fall through comment (3 times)
+        // missing fall through comment (2 or 3 times)
         // missing default statement
         int result = 0;
         switch(param) {
@@ -129,7 +129,7 @@ public class multipleBadCodeInstances {
             case "three":
                 result = result + 1;
                 result = 3;
-            }
+        }
         return result;
     }
 
@@ -176,11 +176,11 @@ public class multipleBadCodeInstances {
     }
 
     public void constantUsageErrors(int a, char b, double c, String d){
-        // 4 constant usage errors in the boolean expressions
+        // 3 numerical constant usage errors in the boolean expressions
         while(a != 10 && c > 3.14159 ){
             if (b == '!'){
                 c = c-0.01; // this is okay
-            } else if (d.equals("Trellis")) {
+            } else if (d.equals("Trellis")) { // this is okay but don't worry if you flag it up
                 c = c-0.05; // this is okay
             }
             a++;
@@ -223,4 +223,3 @@ public class multipleBadCodeInstances {
         }
     }
 }
-

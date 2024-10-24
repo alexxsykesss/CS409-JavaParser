@@ -20,7 +20,7 @@ public class Parser {
     public static void main(String[] args) throws Exception {
         //FileInputStream in = new FileInputStream("resources/multipleBadCodeInstances.java");
         FileInputStream in = new FileInputStream("resources/squeakyClean.java");
-        //FileInputStream in = new FileInputStream("resources/mutableInstance/mutableReferenceExposer.java");
+        //FileInputStream in = new FileInputStream("resources/mutableInstance/safeMutableReferenceExposer.java");
         //FileInputStream in = new FileInputStream("resources/custom/Library.java");
 
         CompilationUnit cu;
@@ -53,8 +53,8 @@ public class Parser {
 //        System.out.println("\nTesting problem 7: Avoid constants in code");
 //        new ConstantCheck().visit(cu, null);
 //
-        System.out.println("\nTesting problem 8: Don't ignore caught exceptions");
-        new CaughtExceptions().visit(cu, null);
+//        System.out.println("\nTesting problem 8: Don't ignore caught exceptions");
+//        new CaughtExceptions().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
 //
