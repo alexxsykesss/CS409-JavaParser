@@ -163,13 +163,11 @@ public class Parser {
                     int lineNumber = field.getRange().map(r -> r.begin.line).orElse(-1);
 
                     field.getVariables().forEach(variable -> {
-                        String variableName = variable.getNameAsString();
-
                         if (hasMethods) {
-                            System.out.println("line " + lineNumber + ": " + variableName +
+                            System.out.println("line " + lineNumber + ": " + variable +
                                     " -- Public instance/class variable detected, should be private");
                         } else {
-                            System.out.println("line " + lineNumber + ": " + variableName +
+                            System.out.println("line " + lineNumber + ": " + variable +
                                     " -- Public instance/class variable detected, but this is ok");
                         }
                     });
