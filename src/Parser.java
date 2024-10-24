@@ -11,6 +11,7 @@ import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.comments.LineComment;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,13 +19,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Parser {
 
     public static void main(String[] args) throws Exception {
-        //FileInputStream in = new FileInputStream("resources/multipleBadCodeInstances.java");
-
-        //FileInputStream in = new FileInputStream("resources/mutableInstance/safeMutableReferenceExposer.java");
-        //FileInputStream in = new FileInputStream("resources/custom/Library.java");
-
         //FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
         FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
+
+        //FileInputStream in = new FileInputStream("resources/problem6MODIFIED.java");
+
 
         CompilationUnit cu;
         try {
@@ -47,11 +46,14 @@ public class Parser {
 //        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
 //        new InstanceClass().visit(cu, null);
 //
-        System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
-        new LocalDeclaredVarOverridePublic().visit(cu,null);
+//        System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
+//        new LocalDeclaredVarOverridePublic().visit(cu,null);
 //
-//        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
-//        new FallThroughComment().visit(cu, null);
+        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
+        new FallThroughComment().visit(cu, null);
+        FileOutputStream out = new FileOutputStream("resources/problem6MODIFIED.java");
+        byte[] modfile = cu.toString().getBytes();
+        out.write(modfile);
 //
 //        System.out.println("\nTesting problem 7: Avoid constants in code");
 //        new ConstantCheck().visit(cu, null);
@@ -73,9 +75,6 @@ public class Parser {
 //        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
 //        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
 //
-//        FileOutputStream out = new FileOutputStream("LibraryMODIFIED.java");
-//        byte[] modfile = cu.toString().getBytes();
-//        out.write(modfile);
 //
 //        new EnumVisitor().visit(cu, null);
 //        new SwitchStatementVisitor().visit(cu, null);
@@ -211,31 +210,24 @@ public class Parser {
     or thrown exception), is marked with a comment to indicate that execution might
     continue into the next statement group. */
     private static class FallThroughComment extends VoidVisitorAdapter<Object> {
-
         @Override
         public void visit(SwitchStmt n, Object arg) {
-            boolean nostat = false;
             boolean statmentFound = false;
-            boolean end = false;
-            EmptyStmt emptyStmt = new EmptyStmt();
+            Statement fallThroughComment = (Statement) new EmptyStmt().setComment(new LineComment("Fall Through!!"));
+
             for (SwitchEntry s : n.getEntries()) {
-                if (s.getStatements().isEmpty() || s.isDefault()) {
-
-                } else {
-
+                if (!s.getStatements().isEmpty() || s.isDefault()) {
                     for (Node g : s.getStatements()) {
                         if (g instanceof BreakStmt || g instanceof ContinueStmt || g instanceof ReturnStmt || g instanceof ThrowStmt) {
                             statmentFound = true;
-
+                            break;
                         }
                     }
                     if (!statmentFound) {
-                        s.getStatements().add((Statement) emptyStmt.setComment(new LineComment("Fall Through!!")));
-
+                        s.getStatements().add(fallThroughComment.clone());
                     }
                     statmentFound = false;
                 }
-
             }
 
         }
