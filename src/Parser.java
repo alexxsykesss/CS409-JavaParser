@@ -19,8 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Parser {
 
     public static void main(String[] args) throws Exception {
-        //FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
-        FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
+        FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
+        //FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
 
         //FileInputStream in = new FileInputStream("resources/problem6MODIFIED.java");
 
@@ -54,21 +54,21 @@ public class Parser {
 //        FileOutputStream out = new FileOutputStream("resources/problem6MODIFIED.java");
 //        byte[] modfile = cu.toString().getBytes();
 //        out.write(modfile);
-
-  //      System.out.println("\nTesting problem 7: Avoid constants in code");
-     //   new ConstantCheck().visit(cu, null);
+//
+//        System.out.println("\nTesting problem 7: Avoid constants in code");
+//        new ConstantCheck().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 8: Don't ignore caught exceptions");
 //        new CaughtExceptions().visit(cu, null);
 //
-//        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
-//        new IncrementLoopInLoop().visit(cu,null);
+        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
+        new IncrementLoopInLoop().visit(cu ,null);
 //        System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
-  //        new RelevantGetSetMethod().visit(cu, null);
+//        new RelevantGetSetMethod().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 11: Switch: default label is included" );
-            new EnumVisitor().visit(cu,null);
-            new SwitchStatementVisitor().visit(cu,null);
+//            new EnumVisitor().visit(cu,null);
+//            new SwitchStatementVisitor().visit(cu,null);
 //        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
 //        new MutableClassMembers().visit(cu, null);
 //
@@ -323,30 +323,41 @@ public class Parser {
      * This leads to confusion, particularly in loops with a large scope. The for loop
      * header should contain all the information about how the loop progresses. */
     private static class IncrementLoopInLoop extends VoidVisitorAdapter<Object> {
-        boolean mod = false;
-        int lineNumber = 0;
+        @Override
         public void visit(ForStmt n, Object args) {
-            for (Expression g : n.getInitialization()) {
-                VariableDeclarationExpr declar = g.asVariableDeclarationExpr();
-                for (int i = 0; i < (g.getChildNodes().size()); i++) {
-                    String varName = declar.getVariable(i).getNameAsString();
-                    if (n.getBody().toString().contains(varName + " =") || n.getBody().toString().contains(varName + "++")) {
-                        mod = true;
-                    }
-                    if (mod) {
-                        lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                        System.out.println("altering loop var in loop bad! Line number " + lineNumber);
-                        mod = false;
-                    }
+            n.getInitialization().forEach(init -> {
+                if (init instanceof VariableDeclarationExpr var){
+                    var.getVariables().forEach(x -> {
+                        n.getBody().accept(new findVar(), x.getNameAsString());
+                    });
                 }
-            }
-
-            // check if intinilaize loop variable is on the left of any expressions if so BAD if not LIT
+            });
+            super.visit(n, args);
         }
 
+        private static class findVar extends VoidVisitorAdapter<String> {
+            @Override
+            public void visit(NameExpr n, String var) {
+                if (n.getNameAsString().equals(var)) {
+                    Node parent = n.getParentNode().orElse(null);
+                    if (parent instanceof AssignExpr assignExpr && Objects.equals(assignExpr.getTarget().toString(), var)) {
+                        int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                        System.out.println("line " + lineNumber + ": " + var + " -- Initializer is being modified inside the body of loop: " + parent);
+                    } else if(parent instanceof UnaryExpr unaryExpr &&
+                            (unaryExpr.getOperator() == UnaryExpr.Operator.POSTFIX_INCREMENT ||
+                                    unaryExpr.getOperator() == UnaryExpr.Operator.PREFIX_INCREMENT ||
+                                    unaryExpr.getOperator() == UnaryExpr.Operator.POSTFIX_DECREMENT ||
+                                    unaryExpr.getOperator() == UnaryExpr.Operator.PREFIX_DECREMENT) &&
+                                    unaryExpr.getExpression().toString().equals(var)){
+                        int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                        System.out.println("line " + lineNumber + ": " + var + " -- Initializer is being modified inside the body of loop: " + parent);
+                    }
+                }
+                super.visit(n, var);
+            }
+        }
 
     }
-
 
     /* Problem 10: Accessors and Mutators should be named appropriately.
            get the classes, then for each class it will get the instance variables.  Then it will
