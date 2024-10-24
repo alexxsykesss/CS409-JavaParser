@@ -19,8 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Parser {
 
     public static void main(String[] args) throws Exception {
-        FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
-        //FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
+        //FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
+        FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
 
         //FileInputStream in = new FileInputStream("resources/problem6MODIFIED.java");
 
@@ -281,8 +281,6 @@ public class Parser {
         }
     }
 
-
-
     /* Problem 8: Don't ignore caught exceptions. It is very rarely correct to do nothing
     in response to a caught exception, but when it truly is appropriate to take no action
     whatsoever in a catch block, the reason this is justified is explained in a comment.
@@ -343,12 +341,12 @@ public class Parser {
                     if (parent instanceof AssignExpr assignExpr && Objects.equals(assignExpr.getTarget().toString(), var)) {
                         int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
                         System.out.println("line " + lineNumber + ": " + var + " -- Initializer is being modified inside the body of loop: " + parent);
-                    } else if(parent instanceof UnaryExpr unaryExpr &&
-                            (unaryExpr.getOperator() == UnaryExpr.Operator.POSTFIX_INCREMENT ||
-                                    unaryExpr.getOperator() == UnaryExpr.Operator.PREFIX_INCREMENT ||
-                                    unaryExpr.getOperator() == UnaryExpr.Operator.POSTFIX_DECREMENT ||
-                                    unaryExpr.getOperator() == UnaryExpr.Operator.PREFIX_DECREMENT) &&
-                                    unaryExpr.getExpression().toString().equals(var)){
+                    } else if(parent instanceof UnaryExpr u &&
+                            (u.getOperator() == UnaryExpr.Operator.POSTFIX_INCREMENT ||
+                                    u.getOperator() == UnaryExpr.Operator.PREFIX_INCREMENT ||
+                                    u.getOperator() == UnaryExpr.Operator.POSTFIX_DECREMENT ||
+                                    u.getOperator() == UnaryExpr.Operator.PREFIX_DECREMENT) &&
+                            u.getExpression().toString().equals(var)){
                         int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
                         System.out.println("line " + lineNumber + ": " + var + " -- Initializer is being modified inside the body of loop: " + parent);
                     }
@@ -356,7 +354,6 @@ public class Parser {
                 super.visit(n, var);
             }
         }
-
     }
 
     /* Problem 10: Accessors and Mutators should be named appropriately.
