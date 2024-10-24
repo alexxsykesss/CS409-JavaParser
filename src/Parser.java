@@ -19,9 +19,12 @@ public class Parser {
 
     public static void main(String[] args) throws Exception {
         //FileInputStream in = new FileInputStream("resources/multipleBadCodeInstances.java");
-        FileInputStream in = new FileInputStream("resources/squeakyClean.java");
+
         //FileInputStream in = new FileInputStream("resources/mutableInstance/safeMutableReferenceExposer.java");
         //FileInputStream in = new FileInputStream("resources/custom/Library.java");
+
+        //FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
+        FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
 
         CompilationUnit cu;
         try {
@@ -38,8 +41,8 @@ public class Parser {
 //        System.out.println("\nTesting problem 2: Keep assignments simple");
 //        new AssignMultipleVarSameLine().visit(cu, null);
 //
-//        System.out.println("\nTesting problem 3: One variable per declaration");
-//        new OneVariablePerDeclaration().visit(cu,null);
+        System.out.println("\nTesting problem 3: One variable per declaration");
+        new OneVariablePerDeclaration().visit(cu,null);
 //
 //        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
 //        new InstanceClass().visit(cu, null);
@@ -85,16 +88,14 @@ public class Parser {
         checks if initializer is present and if not then prints warning
     */
     private static class LocalVarInitializerParser extends VoidVisitorAdapter<Object> {
-
-
         @Override
         public void visit(VariableDeclarationExpr n, Object arg) {
-            for (VariableDeclarator v : n.getVariables()) {
+            n.getVariables().forEach(v -> {
                 if (v.getInitializer().isEmpty()) {
                     int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                    System.out.println("line " + lineNumber + ": " + v.getType() + " " + v.getNameAsString() + "  -- Variable is not initialized with a value");
+                    System.out.println("line " + lineNumber + ": " + v.getType() + " " + v.getNameAsString() + "  -- Variable is not initialised with a value");
                 }
-            }
+            });
         }
     }
 
@@ -108,8 +109,7 @@ public class Parser {
         public void visit(AssignExpr n, Object arg) {
             if (n.getValue().isAssignExpr()) {
                 int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                System.out.println("line " + lineNumber + ": " + n.clone() +
-                        " -- More than one assignment in on expression");
+                System.out.println("line " + lineNumber + ": " + n.clone() + " -- More than one assignment in on statement");
             }
         }
     }
@@ -128,9 +128,16 @@ public class Parser {
                 Node parentNode = n.getParentNode().orElse(null);
                 if (!(parentNode instanceof ForStmt)) {
                     int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                    System.out.println("line " + lineNumber + ": " + n.clone() +
-                            " -- More than one variable declared in one expression");
+                    System.out.println("line " + lineNumber + ": " + n.setComment(null).clone() + " -- More than one variable declared in one declaration");
                 }
+            }
+        }
+
+        @Override
+        public void visit(FieldDeclaration n, Object arg) {
+            if (n.getVariables().size() > 1) {
+                int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                System.out.println("line " + lineNumber + ": " + n.setComment(null).clone() + " -- More than one variable declared in one declaration");
             }
         }
     }
