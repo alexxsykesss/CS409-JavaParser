@@ -19,8 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Parser {
 
     public static void main(String[] args) throws Exception {
-        FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
-        //FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
+        //FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
+        FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
 
         //FileInputStream in = new FileInputStream("resources/problem6MODIFIED.java");
 
@@ -49,14 +49,14 @@ public class Parser {
 //        System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
 //        new LocalDeclaredVarOverridePublic().visit(cu,null);
 //
-        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
-        new FallThroughComment().visit(cu, null);
-        FileOutputStream out = new FileOutputStream("resources/problem6MODIFIED.java");
-        byte[] modfile = cu.toString().getBytes();
-        out.write(modfile);
+//        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
+//        new FallThroughComment().visit(cu, null);
+//        FileOutputStream out = new FileOutputStream("resources/problem6MODIFIED.java");
+//        byte[] modfile = cu.toString().getBytes();
+//        out.write(modfile);
 
-//        System.out.println("\nTesting problem 7: Avoid constants in code");
-//        new ConstantCheck().visit(cu, null);
+        System.out.println("\nTesting problem 7: Avoid constants in code");
+        new ConstantCheck().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 8: Don't ignore caught exceptions");
 //        new CaughtExceptions().visit(cu, null);
@@ -240,40 +240,44 @@ public class Parser {
     private static class ConstantCheck extends VoidVisitorAdapter<Object> {
         @Override
         public void visit(IntegerLiteralExpr n, Object arg) {
-
-            // checks it is not any of these
             if (!(n.getParentNode().get() instanceof VariableDeclarator)
                     && !(n.getParentNode().get() instanceof SwitchEntry)  // dont know if this would be excluded
+                    && !(n.getParentNode().get() instanceof ObjectCreationExpr)  // dont know if this would be excluded
                     && !(n.getParentNode().get() instanceof AssignExpr)) { // dont know if this would be excluded
-                checkIntegerLiteral(n);
+
+                int value = Integer.parseInt(n.getValue());
+                Node parentNode = n.getParentNode().orElse(null);
+                if (parentNode instanceof UnaryExpr){
+                    parentNode = parentNode.getParentNode().orElse(null);
+                }
+
+                if (value != -1 && value != 0 && value != 1) {
+                    int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                    System.out.println("line " + lineNumber + ": " + n + " in [" + parentNode + "] -- Avoid using constant directly");
+                }
             }
             super.visit(n, arg);
         }
 
-        private void checkIntegerLiteral(IntegerLiteralExpr n) {
-            int value = Integer.parseInt(n.getValue());
-            Node parentNode = n.getParentNode().orElse(null);
-            Node parentNode2 = n.getParentNode().orElse(null);
+        @Override
+        public void visit(DoubleLiteralExpr n, Object arg) {
+            if (!(n.getParentNode().get() instanceof VariableDeclarator)
+                    && !(n.getParentNode().get() instanceof SwitchEntry)  // dont know if this would be excluded
+                    && !(n.getParentNode().get() instanceof ObjectCreationExpr)  // dont know if this would be excluded
+                    && !(n.getParentNode().get() instanceof AssignExpr)) { // dont know if this would be excluded
 
-
-            AtomicBoolean forLoop = new AtomicBoolean(false);
-            // loops through nodes to find forStmt.
-            while (parentNode != null && !forLoop.get()) {
-                if (parentNode instanceof ForStmt forNode) {
-                    // gets the arguments of forStmt then streams to a list and searches for node to makes ure it is the current for stmt
-                    forNode.getCompare().get().stream().toList().forEach(v -> {
-                        if (v == parentNode2) {
-                            forLoop.set(true);
-                        }
-                    });
+                double value = Double.parseDouble(n.getValue());
+                Node parentNode = n.getParentNode().orElse(null);
+                if (parentNode instanceof UnaryExpr){
+                    parentNode = parentNode.getParentNode().orElse(null);
                 }
-                parentNode = parentNode.getParentNode().orElse(null);
-            }
 
-            if (!forLoop.get() || value != -1 && value != 0 && value != 1) {
-                int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                System.out.println("line " + lineNumber + ": " + value + " in [" + parentNode2 + "] -- Avoid using constant directly");
+                if (value < -1 || value > 1) {
+                    int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                    System.out.println("line " + lineNumber + ": " + n + " in [" + parentNode + "] -- Avoid using constant directly");
+                }
             }
+            super.visit(n, arg);
         }
     }
 
