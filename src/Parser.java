@@ -19,8 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Parser {
 
     public static void main(String[] args) throws Exception {
-        //FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
-        FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
+        FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
+        //FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
 
         //FileInputStream in = new FileInputStream("resources/problem6MODIFIED.java");
 
@@ -54,7 +54,7 @@ public class Parser {
         FileOutputStream out = new FileOutputStream("resources/problem6MODIFIED.java");
         byte[] modfile = cu.toString().getBytes();
         out.write(modfile);
-//
+
 //        System.out.println("\nTesting problem 7: Avoid constants in code");
 //        new ConstantCheck().visit(cu, null);
 //
@@ -214,6 +214,7 @@ public class Parser {
         @Override
         public void visit(SwitchStmt n, Object arg) {
             boolean statmentFound = false;
+            SwitchEntry last = n.getEntry(n.getEntries().size() - 1);
             Statement fallThroughComment = (Statement) new EmptyStmt().setComment(new LineComment("Fall Through!!"));
 
             for (SwitchEntry s : n.getEntries()) {
@@ -224,7 +225,7 @@ public class Parser {
                             break;
                         }
                     }
-                    if (!statmentFound) {
+                    if (!statmentFound && s != last) {
                         s.getStatements().add(fallThroughComment.clone());
                     }
                     statmentFound = false;
@@ -233,12 +234,10 @@ public class Parser {
         }
     }
 
-
     /* Problem 7: Avoid constants in code - Numerical constants (literals) should not be coded directly.
      * The exceptions are -1, 0, and 1, which can appear in a for loop as counter values.
      */
     private static class ConstantCheck extends VoidVisitorAdapter<Object> {
-
         @Override
         public void visit(IntegerLiteralExpr n, Object arg) {
 
