@@ -20,12 +20,12 @@ public class Parser {
 
     public static void main(String[] args) throws Exception {
         //FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
-//        FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
+        //FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
 
-//        FileInputStream in = new FileInputStream("resources/badCode/mutableInstance/mutableReferenceExposer.java");
+        FileInputStream in = new FileInputStream("resources/badCode/mutableInstance/mutableReferenceExposer.java");
 //        FileInputStream in = new FileInputStream("resources/badCode/mutableInstance/mutableObject.java");
 //        FileInputStream in = new FileInputStream("resources/goodCode/mutableInstance/safeMutableReferenceExposer.java");
-        FileInputStream in = new FileInputStream("resources/goodCode/mutableInstance/mutableObject.java");
+        //FileInputStream in = new FileInputStream("resources/goodCode/mutableInstance/mutableObject.java");
 
 
         //FileInputStream in = new FileInputStream("resources/problem6MODIFIED.java");
@@ -66,7 +66,7 @@ public class Parser {
 //
 //        System.out.println("\nTesting problem 8: Don't ignore caught exceptions");
 //        new CaughtExceptions().visit(cu, null);
-//
+////
 //        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
 //        new IncrementLoopInLoop().visit(cu ,null);
 //
@@ -563,7 +563,14 @@ public class Parser {
         private static class ReturnObjectMethod extends VoidVisitorAdapter<ArrayList<String>> {
             @Override
             public void visit(MethodDeclaration n, ArrayList<String> objs) {
-                
+                n.getBody().get().getStatements().forEach(stmt -> {
+                    if (stmt instanceof ReturnStmt rtn){
+                        rtn.getChildNodes().forEach(p -> {
+                            Expression exp = (Expression) p;
+                            System.out.println(p.getSymbolResolver().calculateType(exp));
+                        });
+                    }
+                });
 
             }
 
