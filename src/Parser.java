@@ -487,13 +487,14 @@ public class Parser {
                 }
             }
 
-            for (Map.Entry<String, ArrayList<String>> entry : EnumVisitor.enumList.entrySet()) {
-                int enumLen = entry.getValue().size();
+            for (Map.Entry<String, ArrayList<String>> e : EnumVisitor.enumList.entrySet()) {
+                int enumLen = e.getValue().size();
                 int checker = 0;
 
                 // not robust checking if switch is enum
                 boolean isEnum = false;
-                List<String> enumValues = entry.getValue();
+                List<String> enumValues = e.getValue();
+                // only gets first label, can change this to be a list and do anyMatch
                 String firstEntryLabel = n.getEntries().get(0).getLabels().get(0).toString();
 
                 if (enumValues.contains(firstEntryLabel)) {
@@ -525,8 +526,6 @@ public class Parser {
             super.visit(n, args);
         }
 
-
-
         /* Problem 12: Do not return references to private mutable class members.
            Returning references to internal mutable members of a class can compromise an
            application's security, both by breaking encapsulation and by providing the
@@ -535,7 +534,6 @@ public class Parser {
            classes.
          */
         public static class MutableClassMembers extends VoidVisitorAdapter<Object> {
-
             @Override
             public void visit(ClassOrInterfaceDeclaration n, Object arg) {
                 System.out.println("Visiting class: " + n.getNameAsString());
@@ -564,18 +562,12 @@ public class Parser {
                                                     FieldAccessExpr fieldAccess = assignExpr.getTarget().asFieldAccessExpr();
                                                     if (fieldAccess.getNameAsString().equals(fieldName)) {
                                                         int lineNumber = method.getRange().map(r -> r.begin.line).orElse(-1);
-                                                        System.out.println("line " + lineNumber + ": "
-                                                                + method.getNameAsString()
-                                                                + " references private mutable class member '"
-                                                                + fieldName + "'");
+                                                        System.out.println("line " + lineNumber + ": " + method.getNameAsString() + " references private mutable class member '" + fieldName + "'");
                                                     }
                                                 } else if (assignExpr.getTarget().isNameExpr()) {
                                                     if (assignExpr.getTarget().asNameExpr().getNameAsString().equals(fieldName)) {
                                                         int lineNumber = method.getRange().map(r -> r.begin.line).orElse(-1);
-                                                        System.out.println("line " + lineNumber + ": "
-                                                                + method.getNameAsString()
-                                                                + " references private mutable class member '"
-                                                                + fieldName + "'");
+                                                        System.out.println("line " + lineNumber + ": " + method.getNameAsString() + " references private mutable class member '" + fieldName + "'");
                                                     }
                                                 }
                                             });
