@@ -54,7 +54,7 @@ public class Parser {
 //        new LocalDeclaredVarOverridePublic().visit(cu,null);
 //
 //        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
-//        new FallThroughComment().visit(cu, null);
+//       new FallThroughComment().visit(cu, null);
 //        FileOutputStream out = new FileOutputStream("resources/problem6MODIFIED.java");
 //        byte[] modfile = cu.toString().getBytes();
 //        out.write(modfile);
@@ -64,7 +64,7 @@ public class Parser {
 //
 //        System.out.println("\nTesting problem 8: Don't ignore caught exceptions");
 //        new CaughtExceptions().visit(cu, null);
-////
+///
 //        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
 //        new IncrementLoopInLoop().visit(cu ,null);
 //
@@ -78,8 +78,8 @@ public class Parser {
 //        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
 //        new MutableClassMembers().visit(cu, null);
 //
-        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
-        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
+     //   System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
+       // new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
 
     }
 
@@ -215,6 +215,7 @@ public class Parser {
         @Override
         public void visit(SwitchStmt n, Object arg) {
             boolean statmentFound = false;
+            int lineNumber = 0;
             SwitchEntry last = n.getEntry(n.getEntries().size() - 1);
             Statement fallThroughComment = (Statement) new EmptyStmt().setComment(new LineComment("Fall Through!!"));
 
@@ -228,6 +229,8 @@ public class Parser {
                     }
                     if (!statmentFound && s != last) {
                         s.getStatements().add(fallThroughComment.clone());
+                       lineNumber = s.getRange().map(r -> r.begin.line).orElse(-1);
+                        System.out.println("Fall through detected BAD! on line: "+lineNumber);
                     }
                     statmentFound = false;
                 }
