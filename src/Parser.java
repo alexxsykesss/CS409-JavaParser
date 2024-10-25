@@ -633,7 +633,7 @@ public class Parser {
             static class FieldAccessor extends VoidVisitorAdapter<ArrayList<String>> {
                 @Override
                 public void visit(MethodDeclaration n, ArrayList<String> outerFieldsNames) {
-                    if (n.isPublic()) {
+                    if (!n.isPrivate()) {
 
                         // with 'this.'
                         n.findAll(FieldAccessExpr.class).forEach(expr -> {
