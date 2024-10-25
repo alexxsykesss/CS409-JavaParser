@@ -20,7 +20,13 @@ public class Parser {
 
     public static void main(String[] args) throws Exception {
         //FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
-        FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
+//        FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
+
+//        FileInputStream in = new FileInputStream("resources/badCode/mutableInstance/mutableReferenceExposer.java");
+//        FileInputStream in = new FileInputStream("resources/badCode/mutableInstance/mutableObject.java");
+//        FileInputStream in = new FileInputStream("resources/goodCode/mutableInstance/safeMutableReferenceExposer.java");
+        FileInputStream in = new FileInputStream("resources/goodCode/mutableInstance/mutableObject.java");
+
 
         //FileInputStream in = new FileInputStream("resources/problem6MODIFIED.java");
 
@@ -71,11 +77,11 @@ public class Parser {
 //        new EnumVisitor().visit(cu,null);
 //        new SwitchStatementVisitor().visit(cu,null);
 //
-//        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
-//        new MutableClassMembers().visit(cu, null);
+        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
+        new MutableClassMembers().visit(cu, null);
 //
-        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
-        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
+//        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
+//        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
 
     }
 
