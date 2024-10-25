@@ -7,11 +7,9 @@ import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.comments.LineComment;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -20,12 +18,12 @@ public class Parser {
 
     public static void main(String[] args) throws Exception {
         //FileInputStream in = new FileInputStream("resources/goodCode/squeakyClean.java");
-        //FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
+        FileInputStream in = new FileInputStream("resources/badCode/multipleBadCodeInstances.java");
 
-        FileInputStream in = new FileInputStream("resources/badCode/mutableInstance/mutableReferenceExposer.java");
+        //FileInputStream in = new FileInputStream("resources/badCode/mutableInstance/mutableReferenceExposer.java");
 //        FileInputStream in = new FileInputStream("resources/badCode/mutableInstance/mutableObject.java");
 //        FileInputStream in = new FileInputStream("resources/goodCode/mutableInstance/safeMutableReferenceExposer.java");
-        //FileInputStream in = new FileInputStream("resources/goodCode/mutableInstance/mutableObject.java");
+//        FileInputStream in = new FileInputStream("resources/goodCode/mutableInstance/mutableObject.java");
 
 
         //FileInputStream in = new FileInputStream("resources/problem6MODIFIED.java");
@@ -77,11 +75,11 @@ public class Parser {
 //        new EnumVisitor().visit(cu,null);
 //        new SwitchStatementVisitor().visit(cu,null);
 //
-        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
-        new MutableClassMembers().visit(cu, null);
+//        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
+//        new MutableClassMembers().visit(cu, null);
 //
-//        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
-//        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
+        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
+        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
 
     }
 
@@ -538,40 +536,36 @@ public class Parser {
     public static class MutableClassMembers extends VoidVisitorAdapter<Object> {
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Object arg) {
-
-            ArrayList<String> objects = new ArrayList<>();
-
             // Check for non-final fields that are private
             n.getFields().forEach(v -> {
                 if (v.hasModifier(Modifier.Keyword.PRIVATE) && !v.hasModifier(Modifier.Keyword.FINAL)) {
                     v.getVariables().forEach(var -> {
                         // if var is not primitive it's an object
                         if (!var.getType().isPrimitiveType()) {
-                            // add to array
-                            objects.add(var.getNameAsString());
+                            n.getMethods().forEach(m -> {
+                                m.accept(new ReturnObjectMethod(), var);
+                            });
                         }
-                        //
                     });
                 }
             });
 
-            n.getMethods().forEach(m -> {
-                m.accept(new ReturnObjectMethod(), objects);
-            });
+
         }
 
-        private static class ReturnObjectMethod extends VoidVisitorAdapter<ArrayList<String>> {
+        private static class ReturnObjectMethod extends VoidVisitorAdapter<VariableDeclarator> {
             @Override
-            public void visit(MethodDeclaration n, ArrayList<String> objs) {
+            public void visit(MethodDeclaration n, VariableDeclarator objs) {
                 n.getBody().get().getStatements().forEach(stmt -> {
                     if (stmt instanceof ReturnStmt rtn){
                         rtn.getChildNodes().forEach(p -> {
-                            Expression exp = (Expression) p;
-                            System.out.println(p.getSymbolResolver().calculateType(exp));
+                            if(Objects.equals(objs.getName().toString(), p.toString())){
+                                int lineNumber = rtn.getRange().map(r -> r.begin.line).orElse(-1);
+                                System.out.println("line " + lineNumber + ": " + rtn + " references private mutable class member '" + p + "' -- replace with '" + p+".clone();'");
+                            }
                         });
                     }
                 });
-
             }
 
         }
@@ -642,7 +636,7 @@ public class Parser {
                         n.findAll(FieldAccessExpr.class).forEach(expr -> {
                             if (outerFieldsNames.contains(expr.getNameAsString())) {
                                 int lineNumber = expr.getRange().map(r -> r.begin.line).orElse(-1);
-                                System.out.println("line " + lineNumber + ": Parent private class variable '" + expr.getNameAsString() + "' exposed in method '" + n.getNameAsString() + "' --- Change method to private");
+                                System.out.println("line " + lineNumber + ": Parent private class variable '" + expr.getNameAsString() + "' exposed in method '" + n.getNameAsString() + "' --- Change class to private");
                             }
                         });
 
