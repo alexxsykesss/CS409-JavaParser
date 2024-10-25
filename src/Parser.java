@@ -67,20 +67,15 @@ public class Parser {
 //        System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
 //        new RelevantGetSetMethod().visit(cu, null);
 //
-        System.out.println("\nTesting problem 11: Switch: default label is included" );
-            new EnumVisitor().visit(cu,null);
-            new SwitchStatementVisitor().visit(cu,null);
+//        System.out.println("\nTesting problem 11: Switch: default label is included" );
+//        new EnumVisitor().visit(cu,null);
+//        new SwitchStatementVisitor().visit(cu,null);
 //
 //        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
 //        new MutableClassMembers().visit(cu, null);
 //
-//        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
-//        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
-//
-//
-//        new EnumVisitor().visit(cu, null);
-//        new SwitchStatementVisitor().visit(cu, null);
-
+        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
+        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
 
     }
 
@@ -525,6 +520,7 @@ public class Parser {
             }
             super.visit(n, args);
         }
+    }
 
         /* Problem 12: Do not return references to private mutable class members.
            Returning references to internal mutable members of a class can compromise an
@@ -586,7 +582,7 @@ public class Parser {
         /* Problem 13: Do not expose private members of an outer class from within a
         nested class
         */
-        public static class ExposedPrivateFieldsFromNestedClass extends VoidVisitorAdapter<Object> {
+        private static class ExposedPrivateFieldsFromNestedClass extends VoidVisitorAdapter<Object> {
 
             @Override
             public void visit(ClassOrInterfaceDeclaration n, Object arg) {
@@ -659,4 +655,3 @@ public class Parser {
         }
 
     }
-}
