@@ -64,12 +64,13 @@ public class Parser {
 //        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
 //        new IncrementLoopInLoop().visit(cu ,null);
 //
-        System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
-        new RelevantGetSetMethod().visit(cu, null);
+//        System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
+//        new RelevantGetSetMethod().visit(cu, null);
 //
-//        System.out.println("\nTesting problem 11: Switch: default label is included" );
-//            new EnumVisitor().visit(cu,null);
-//            new SwitchStatementVisitor().visit(cu,null);
+        System.out.println("\nTesting problem 11: Switch: default label is included" );
+            new EnumVisitor().visit(cu,null);
+            new SwitchStatementVisitor().visit(cu,null);
+//
 //        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
 //        new MutableClassMembers().visit(cu, null);
 //
@@ -462,7 +463,6 @@ public class Parser {
 
     private static class EnumVisitor extends VoidVisitorAdapter<Object> {
         static HashMap<String, ArrayList<String>> enumList = new HashMap<>();
-
         @Override
         public void visit(EnumDeclaration n, Object args) {
             ArrayList<String> fieldNames = new ArrayList<>();
@@ -476,51 +476,50 @@ public class Parser {
     }
 
     private static class SwitchStatementVisitor extends VoidVisitorAdapter<Object> {
-
         @Override
         public void visit(SwitchStmt n, Object args) {
-            int checker = 0;
-            int enumlen= 0;
-            boolean isenum = false;
-            int lineNumber = 0;
-            boolean defaultpres = n.getEntries().getLast().get().isDefault();
+            boolean hasDefault = false;
 
-            for (String i : EnumVisitor.enumList.keySet()) {
-                enumlen = EnumVisitor.enumList.get(i).size();
-            }
-
-            String enumL = EnumVisitor.enumList.values().toString().replace("[", "");
-            enumL = enumL.replace("]", "");
-
-
-            String EnumT = n.getEntries().get(0).getLabels().toString().replace("[", "");
-            EnumT = EnumT.replace("]", "");
-
-            if (enumL.contains(EnumT)) {
-                isenum = true;
-
-                String compare = "";
-                for (SwitchEntry sigma : n.getEntries()) {
-
-                    compare = sigma.getLabels().toString().replace("[", "");
-                    compare = compare.replace("]", "");
-                    if (enumL.contains(compare)) {
-                        checker++;
-                    }
+            for (SwitchEntry entry : n.getEntries()) {
+                if (entry.isDefault()) {
+                    hasDefault = true;
+                    break;
                 }
             }
-            if(defaultpres){
-                checker--;
-            }
-            if (checker == (enumlen)) {
-            } else {
-                if(isenum &&!(defaultpres)){
-                    lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                    System.out.println("No default statment + not all enum types covered BAD! at line: " + lineNumber);
-                }else if (!(defaultpres)) {
-                    lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
-                    System.out.println("No default statment BAD! at line: " + lineNumber);
 
+            for (Map.Entry<String, ArrayList<String>> entry : EnumVisitor.enumList.entrySet()) {
+                int enumLen = entry.getValue().size();
+                int checker = 0;
+
+                // not robust checking if switch is enum
+                boolean isEnum = false;
+                List<String> enumValues = entry.getValue();
+                String firstEntryLabel = n.getEntries().get(0).getLabels().get(0).toString();
+
+                if (enumValues.contains(firstEntryLabel)) {
+                    isEnum = true;
+                    for (SwitchEntry sigma : n.getEntries()) {
+                        String compare = sigma.getLabels().get(0).toString();
+                        if (enumValues.contains(compare)) {
+                            checker++;
+                        }
+                    }
+                }
+                if (hasDefault) {
+                    checker--;
+                }
+
+                if (checker != enumLen) {
+                    int lineNumber = n.getRange().map(r -> r.begin.line).orElse(-1);
+                    if (!hasDefault) {
+                        if (isEnum) {
+                            System.out.println("line " + lineNumber + ": -- No default switch statement + not all enum types covered BAD!");
+                        } else {
+                            System.out.println("line " + lineNumber + ": -- No default switch statement BAD!");
+                        }
+                    } else if (!n.getEntries().getLast().get().isDefault()) {
+                        System.out.println("line " + lineNumber + ": -- Default switch statement is not the last case BAD!");
+                    }
                 }
             }
             super.visit(n, args);
