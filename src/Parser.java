@@ -40,7 +40,7 @@ public class Parser {
 
 
         // Assignment Visitors
-//        System.out.println("\nTesting problem 1: variable initialisation");
+//        System.out.println("\nTesting problem 1: Variable Initialisation");
 //        new LocalVarInitializerParser().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 2: Keep assignments simple");
@@ -528,139 +528,128 @@ public class Parser {
         }
     }
 
-        /* Problem 12: Do not return references to private mutable class members.
-           Returning references to internal mutable members of a class can compromise an
-           application's security, both by breaking encapsulation and by providing the
-           opportunity to corrupt the internal state of the class (whether accidentally or
-           maliciously). As a result, programs must not return references to private mutable
-           classes.
-         */
-        public static class MutableClassMembers extends VoidVisitorAdapter<Object> {
-            @Override
-            public void visit(ClassOrInterfaceDeclaration n, Object arg) {
-                System.out.println("Visiting class: " + n.getNameAsString());
+    /* Problem 12: Do not return references to private mutable class members.
+       Returning references to internal mutable members of a class can compromise an
+       application's security, both by breaking encapsulation and by providing the
+       opportunity to corrupt the internal state of the class (whether accidentally or
+       maliciously). As a result, programs must not return references to private mutable
+       classes.
+     */
+    public static class MutableClassMembers extends VoidVisitorAdapter<Object> {
+        @Override
+        public void visit(ClassOrInterfaceDeclaration n, Object arg) {
 
-                // Check if the class is not final
-                if (!n.isFinal()) {
-                    //System.out.println("Class is not final, checking fields...");
+            ArrayList<String> objects = new ArrayList<>();
 
-                    // Check for non-final fields that are private
-                    n.getFields().forEach(field -> {
-                        if (field.hasModifier(Modifier.Keyword.PRIVATE) && !field.hasModifier(Modifier.Keyword.FINAL)) {
-                            field.getVariables().forEach(variable -> {
-                                String fieldName = variable.getNameAsString();
-                                //System.out.println("Checking field: " + fieldName);
-
-                                // Check for setter methods that modify the field
-                                n.getMethods().forEach(method -> {
-                                    //System.out.println("Checking method: " + method.getNameAsString());
-
-                                    if (method.getNameAsString().startsWith("set") && !method.getParameters().isEmpty()) {
-                                        // Check if the method modifies the private field
-                                        method.getBody().ifPresent(body -> {
-                                            body.findAll(AssignExpr.class).forEach(assignExpr -> {
-                                                // Check if the assignment target is a field access or a simple name
-                                                if (assignExpr.getTarget().isFieldAccessExpr()) {
-                                                    FieldAccessExpr fieldAccess = assignExpr.getTarget().asFieldAccessExpr();
-                                                    if (fieldAccess.getNameAsString().equals(fieldName)) {
-                                                        int lineNumber = method.getRange().map(r -> r.begin.line).orElse(-1);
-                                                        System.out.println("line " + lineNumber + ": " + method.getNameAsString() + " references private mutable class member '" + fieldName + "'");
-                                                    }
-                                                } else if (assignExpr.getTarget().isNameExpr()) {
-                                                    if (assignExpr.getTarget().asNameExpr().getNameAsString().equals(fieldName)) {
-                                                        int lineNumber = method.getRange().map(r -> r.begin.line).orElse(-1);
-                                                        System.out.println("line " + lineNumber + ": " + method.getNameAsString() + " references private mutable class member '" + fieldName + "'");
-                                                    }
-                                                }
-                                            });
-                                        });
-                                    }
-                                });
-                            });
+            // Check for non-final fields that are private
+            n.getFields().forEach(v -> {
+                if (v.hasModifier(Modifier.Keyword.PRIVATE) && !v.hasModifier(Modifier.Keyword.FINAL)) {
+                    v.getVariables().forEach(var -> {
+                        // if var is not primitive it's an object
+                        if (!var.getType().isPrimitiveType()) {
+                            // add to array
+                            objects.add(var.getNameAsString());
                         }
+                        //
                     });
                 }
-                super.visit(n, arg);
+            });
+
+            n.getMethods().forEach(m -> {
+                m.accept(new ReturnObjectMethod(), objects);
+            });
+        }
+
+        private static class ReturnObjectMethod extends VoidVisitorAdapter<ArrayList<String>> {
+            @Override
+            public void visit(MethodDeclaration n, ArrayList<String> objs) {
+                
+
             }
+
         }
 
 
-        /* Problem 13: Do not expose private members of an outer class from within a
-        nested class
-        */
-        private static class ExposedPrivateFieldsFromNestedClass extends VoidVisitorAdapter<Object> {
+
+    }
+
+
+    /* Problem 13: Do not expose private members of an outer class from within a
+    nested class
+    */
+    private static class ExposedPrivateFieldsFromNestedClass extends VoidVisitorAdapter<Object> {
+        @Override
+        public void visit(ClassOrInterfaceDeclaration n, Object arg) {
+            ArrayList<FieldDeclaration> outerClassFields = new ArrayList<>();
+
+            n.getFields().forEach(v -> {
+                if (v.hasModifier(Modifier.Keyword.PRIVATE)) {
+                    outerClassFields.add(v.asFieldDeclaration());
+                }
+            });
+
+            n.getMembers().forEach(member -> {
+                if (member instanceof ClassOrInterfaceDeclaration nestedClass) {
+                    nestedClass.accept(new NestedClass(), outerClassFields);
+                }
+            });
+        }
+
+
+        static class NestedClass extends VoidVisitorAdapter<ArrayList<FieldDeclaration>> {
             @Override
-            public void visit(ClassOrInterfaceDeclaration n, Object arg) {
-                ArrayList<FieldDeclaration> outerClassFields = new ArrayList<>();
+            public void visit(ClassOrInterfaceDeclaration n, ArrayList<FieldDeclaration> outerClassFields) {
+                ArrayList<FieldDeclaration> outerAndInner = new ArrayList<>();
+
+                ArrayList<String> fieldNames = new ArrayList<>();
+                outerClassFields.forEach(field -> {
+                    field.getVariables().forEach(variable -> fieldNames.add(variable.getNameAsString()));
+                });
+
+                if (!n.hasModifier(Modifier.Keyword.PRIVATE)) {
+                    n.accept(new FieldAccessor(), fieldNames);
+                }
 
                 n.getFields().forEach(v -> {
                     if (v.hasModifier(Modifier.Keyword.PRIVATE)) {
-                        outerClassFields.add(v.asFieldDeclaration());
+                        outerAndInner.add(v.asFieldDeclaration());
                     }
                 });
+
 
                 n.getMembers().forEach(member -> {
                     if (member instanceof ClassOrInterfaceDeclaration nestedClass) {
-                        nestedClass.accept(new NestedClass(), outerClassFields);
+                        nestedClass.accept(new NestedClass(), outerAndInner);
                     }
                 });
+
             }
 
 
-            static class NestedClass extends VoidVisitorAdapter<ArrayList<FieldDeclaration>> {
+            static class FieldAccessor extends VoidVisitorAdapter<ArrayList<String>> {
                 @Override
-                public void visit(ClassOrInterfaceDeclaration n, ArrayList<FieldDeclaration> outerClassFields) {
-                    ArrayList<FieldDeclaration> outerAndInner = new ArrayList<>();
+                public void visit(MethodDeclaration n, ArrayList<String> outerFieldsNames) {
+                    if (n.isPublic()) {
 
-                    ArrayList<String> fieldNames = new ArrayList<>();
-                    outerClassFields.forEach(field -> {
-                        field.getVariables().forEach(variable -> fieldNames.add(variable.getNameAsString()));
-                    });
+                        // with 'this.'
+                        n.findAll(FieldAccessExpr.class).forEach(expr -> {
+                            if (outerFieldsNames.contains(expr.getNameAsString())) {
+                                int lineNumber = expr.getRange().map(r -> r.begin.line).orElse(-1);
+                                System.out.println("line " + lineNumber + ": Parent private class variable '" + expr.getNameAsString() + "' exposed in method '" + n.getNameAsString() + "' --- Change method to private");
+                            }
+                        });
 
-                    if (!n.hasModifier(Modifier.Keyword.PRIVATE)) {
-                        n.accept(new FieldAccessor(), fieldNames);
-                    }
-
-                    n.getFields().forEach(v -> {
-                        if (v.hasModifier(Modifier.Keyword.PRIVATE)) {
-                            outerAndInner.add(v.asFieldDeclaration());
-                        }
-                    });
-
-
-                    n.getMembers().forEach(member -> {
-                        if (member instanceof ClassOrInterfaceDeclaration nestedClass) {
-                            nestedClass.accept(new NestedClass(), outerAndInner);
-                        }
-                    });
-
-                }
-
-
-                static class FieldAccessor extends VoidVisitorAdapter<ArrayList<String>> {
-                    @Override
-                    public void visit(MethodDeclaration n, ArrayList<String> outerFieldsNames) {
-                        if (n.isPublic()) {
-
-                            // with 'this.'
-                            n.findAll(FieldAccessExpr.class).forEach(expr -> {
-                                if (outerFieldsNames.contains(expr.getNameAsString())) {
-                                    int lineNumber = expr.getRange().map(r -> r.begin.line).orElse(-1);
-                                    System.out.println("line " + lineNumber + ": Parent private class variable '" + expr.getNameAsString() + "' exposed in method '" + n.getNameAsString() + "' --- Change method to private");
-                                }
-                            });
-
-                            // without 'this.'
-                            n.findAll(NameExpr.class).forEach(expr -> {
-                                if (outerFieldsNames.contains(expr.getNameAsString())) {
-                                    int lineNumber = expr.getRange().map(r -> r.begin.line).orElse(-1);
-                                    System.out.println("line " + lineNumber + ": Parent private class variable '" + expr.getNameAsString() + "' exposed in method '" + n.getNameAsString() + "' --- Change method to private");
-                                }
-                            });
-                        }
+                        // without 'this.'
+                        n.findAll(NameExpr.class).forEach(expr -> {
+                            if (outerFieldsNames.contains(expr.getNameAsString())) {
+                                int lineNumber = expr.getRange().map(r -> r.begin.line).orElse(-1);
+                                System.out.println("line " + lineNumber + ": Parent private class variable '" + expr.getNameAsString() + "' exposed in method '" + n.getNameAsString() + "' --- Change method to private");
+                            }
+                        });
                     }
                 }
             }
         }
-
     }
+
+}
