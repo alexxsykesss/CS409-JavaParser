@@ -61,10 +61,11 @@ public class Parser {
 //        System.out.println("\nTesting problem 8: Don't ignore caught exceptions");
 //        new CaughtExceptions().visit(cu, null);
 //
-        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
-        new IncrementLoopInLoop().visit(cu ,null);
-//        System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
-//        new RelevantGetSetMethod().visit(cu, null);
+//        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
+//        new IncrementLoopInLoop().visit(cu ,null);
+//
+        System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
+        new RelevantGetSetMethod().visit(cu, null);
 //
 //        System.out.println("\nTesting problem 11: Switch: default label is included" );
 //            new EnumVisitor().visit(cu,null);
@@ -316,7 +317,6 @@ public class Parser {
 
     }
 
-
     /* Problem 9: Don't change a for loop iteration variable in the body of the loop.
      * This leads to confusion, particularly in loops with a large scope. The for loop
      * header should contain all the information about how the loop progresses. */
@@ -366,29 +366,24 @@ public class Parser {
            }
      */
     private static class RelevantGetSetMethod extends VoidVisitorAdapter<Object> {
-
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Object arg) {
             HashMap<String, Type> instanceVars = new HashMap<>();
 
-            // Get the instance variables of each class
+            // gets the field variables
             n.getFields().forEach(v -> {
                 v.getVariables().forEach(var -> {
                     instanceVars.put(var.getNameAsString(), var.getType());
                 });
             });
-
-            // passing in methodVisitor, doing a sub traversal before continuing
             n.getMethods().forEach(m -> m.accept(new MethodDeclarationVisitor(), instanceVars));
 
-            super.visit(n, instanceVars); // Continue visiting child nodes
+            super.visit(n, instanceVars);
         }
 
         public static class MethodDeclarationVisitor extends VoidVisitorAdapter<Map<String, Type>> {
-
             @Override
             public void visit(MethodDeclaration n, Map<String, Type> instanceVars) {
-                // instanceVars.entrySet() is all the HashMap values and the left hand side is assigning one of those sets to the "s" variable
                 for (Map.Entry<String, Type> s : instanceVars.entrySet()) {
                     String instanceName = s.getKey();
                     Type instanceType = s.getValue();
@@ -420,15 +415,12 @@ public class Parser {
                 super.visit(n, instanceVars);
             }
 
+            // is method a getter
             private boolean isGetter(MethodDeclaration n, String vName, Type vType) {
-                // Check if the method has no parameters and the return type matches vType
                 if (n.getParameters().isEmpty() && n.getType().equals(vType)) {
-                    // Check if the method body has a single return statement
                     if (n.getBody().isPresent() && n.getBody().get().getStatements().size() == 1) {
-                        // checks if statement is a return statement
-                        if (n.getBody().get().getStatement(0) instanceof ReturnStmt returnStmt) {
-                            Expression expression = returnStmt.getExpression().orElse(null);
-                            // Check if the returned expression matches vName
+                        if (n.getBody().get().getStatement(0) instanceof ReturnStmt rStmt) {
+                            Expression expression = rStmt.getExpression().orElse(null);
                             if (expression instanceof NameExpr nameExpr) {
                                 return nameExpr.getNameAsString().equals(vName);
                             }
@@ -438,22 +430,20 @@ public class Parser {
                 return false;
             }
 
+            // is method a setter
             private boolean isSetter(MethodDeclaration n, String vName, Type vType) {
-                // Check if the method has a single parameter and its type matches the variable type
                 if (n.getParameters().size() == 1 && n.getParameter(0).getType().equals(vType)) {
-                    // Check if the method body is present and has a single statement
                     if (n.getBody().isPresent() && n.getBody().get().getStatements().size() == 1) {
                         Statement statement = n.getBody().get().getStatement(0);
-                        if (statement instanceof ExpressionStmt expressionStmt) {
-                            // Check if statement is an assignment expression
-                            if (expressionStmt.getExpression() instanceof AssignExpr assignExpr) {
-                                if (assignExpr.getValue() instanceof NameExpr valueExpr) {
-                                    String parameterName = n.getParameter(0).getNameAsString();
+                        if (statement instanceof ExpressionStmt eStmt) {
+                            if (eStmt.getExpression() instanceof AssignExpr aExpr) {
+                                if (aExpr.getValue() instanceof NameExpr valueExpr) {
+                                    String pName = n.getParameter(0).getNameAsString();
                                     // pass if assigning var directly or 'this.var'
-                                    if (assignExpr.getTarget() instanceof NameExpr nameExpr) {
-                                        return nameExpr.getNameAsString().equals(vName) && valueExpr.getNameAsString().equals(parameterName);
-                                    } else if (assignExpr.getTarget() instanceof FieldAccessExpr fieldAccessExpr) {
-                                        return fieldAccessExpr.getNameAsString().equals(vName) && valueExpr.getNameAsString().equals(parameterName);
+                                    if (aExpr.getTarget() instanceof NameExpr nameExpr) {
+                                        return nameExpr.getNameAsString().equals(vName) && valueExpr.getNameAsString().equals(pName);
+                                    } else if (aExpr.getTarget() instanceof FieldAccessExpr fieldAccessExpr) {
+                                        return fieldAccessExpr.getNameAsString().equals(vName) && valueExpr.getNameAsString().equals(pName);
                                     }
                                 }
                             }
