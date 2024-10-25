@@ -583,7 +583,6 @@ public class Parser {
         nested class
         */
         private static class ExposedPrivateFieldsFromNestedClass extends VoidVisitorAdapter<Object> {
-
             @Override
             public void visit(ClassOrInterfaceDeclaration n, Object arg) {
                 ArrayList<FieldDeclaration> outerClassFields = new ArrayList<>();
@@ -603,7 +602,6 @@ public class Parser {
 
 
             static class NestedClass extends VoidVisitorAdapter<ArrayList<FieldDeclaration>> {
-
                 @Override
                 public void visit(ClassOrInterfaceDeclaration n, ArrayList<FieldDeclaration> outerClassFields) {
                     ArrayList<FieldDeclaration> outerAndInner = new ArrayList<>();
@@ -613,13 +611,16 @@ public class Parser {
                         field.getVariables().forEach(variable -> fieldNames.add(variable.getNameAsString()));
                     });
 
-                    n.accept(new FieldAccessor(), fieldNames);
+                    if (!n.hasModifier(Modifier.Keyword.PRIVATE)) {
+                        n.accept(new FieldAccessor(), fieldNames);
+                    }
 
                     n.getFields().forEach(v -> {
                         if (v.hasModifier(Modifier.Keyword.PRIVATE)) {
                             outerAndInner.add(v.asFieldDeclaration());
                         }
                     });
+
 
                     n.getMembers().forEach(member -> {
                         if (member instanceof ClassOrInterfaceDeclaration nestedClass) {
@@ -631,21 +632,23 @@ public class Parser {
 
 
                 static class FieldAccessor extends VoidVisitorAdapter<ArrayList<String>> {
-
                     @Override
                     public void visit(MethodDeclaration n, ArrayList<String> outerFieldsNames) {
                         if (n.isPublic()) {
+
                             // with 'this.'
-                            n.findAll(FieldAccessExpr.class).forEach(fieldAccess -> {
-                                if (outerFieldsNames.contains(fieldAccess.getNameAsString())) {
-                                    System.out.println("Exposed private parent field '" + fieldAccess.getNameAsString() + "' in method: " + n.getNameAsString() + " --- Change method to private");
+                            n.findAll(FieldAccessExpr.class).forEach(expr -> {
+                                if (outerFieldsNames.contains(expr.getNameAsString())) {
+                                    int lineNumber = expr.getRange().map(r -> r.begin.line).orElse(-1);
+                                    System.out.println("line " + lineNumber + ": Parent private class variable '" + expr.getNameAsString() + "' exposed in method '" + n.getNameAsString() + "' --- Change method to private");
                                 }
                             });
 
                             // without 'this.'
-                            n.findAll(NameExpr.class).forEach(nameExpr -> {
-                                if (outerFieldsNames.contains(nameExpr.getNameAsString())) {
-                                    System.out.println("Exposed private parent field '" + nameExpr.getNameAsString() + "' in method: " + n.getNameAsString() + " --- Change method to private");
+                            n.findAll(NameExpr.class).forEach(expr -> {
+                                if (outerFieldsNames.contains(expr.getNameAsString())) {
+                                    int lineNumber = expr.getRange().map(r -> r.begin.line).orElse(-1);
+                                    System.out.println("line " + lineNumber + ": Parent private class variable '" + expr.getNameAsString() + "' exposed in method '" + n.getNameAsString() + "' --- Change method to private");
                                 }
                             });
                         }
