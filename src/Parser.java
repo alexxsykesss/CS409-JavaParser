@@ -10,6 +10,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.ast.comments.LineComment;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -38,48 +39,48 @@ public class Parser {
 
 
         // Assignment Visitors
-//        System.out.println("\nTesting problem 1: Variable Initialisation");
-//        new LocalVarInitializerParser().visit(cu, null);
-//
-//        System.out.println("\nTesting problem 2: Keep assignments simple");
-//        new AssignMultipleVarSameLine().visit(cu, null);
-//
-//        System.out.println("\nTesting problem 3: One variable per declaration");
-//        new OneVariablePerDeclaration().visit(cu,null);
-//
-//        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
-//        new InstanceClass().visit(cu, null);
-//
-//        System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
-//        new LocalDeclaredVarOverridePublic().visit(cu,null);
-//
-//        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
-//       new FallThroughComment().visit(cu, null);
-//        FileOutputStream out = new FileOutputStream("resources/problem6MODIFIED.java");
-//        byte[] modfile = cu.toString().getBytes();
-//        out.write(modfile);
-//
-//        System.out.println("\nTesting problem 7: Avoid constants in code");
-//        new ConstantCheck().visit(cu, null);
-//
-//        System.out.println("\nTesting problem 8: Don't ignore caught exceptions");
-//        new CaughtExceptions().visit(cu, null);
-///
-//        System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
-//        new IncrementLoopInLoop().visit(cu ,null);
-//
-//        System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
-//        new RelevantGetSetMethod().visit(cu, null);
-//
-//        System.out.println("\nTesting problem 11: Switch: default label is included" );
-//        new EnumVisitor().visit(cu,null);
-//        new SwitchStatementVisitor().visit(cu,null);
-//
-//        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
-//        new MutableClassMembers().visit(cu, null);
-//
-     //   System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
-       // new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
+        System.out.println("\nTesting problem 1: Variable Initialisation");
+        new LocalVarInitializerParser().visit(cu, null);
+
+        System.out.println("\nTesting problem 2: Keep assignments simple");
+        new AssignMultipleVarSameLine().visit(cu, null);
+
+        System.out.println("\nTesting problem 3: One variable per declaration");
+        new OneVariablePerDeclaration().visit(cu,null);
+
+        System.out.println("\nTesting problem 4: Limit access to instance and class variables" );
+        new InstanceClass().visit(cu, null);
+
+       System.out.println("\nTesting problem 5: Avoid local declarations that hide declarations at higher levels" );
+        new LocalDeclaredVarOverridePublic().visit(cu,null);
+
+        System.out.println("\nTesting problem 6: Switch: FallThrough is commented" );
+          new FallThroughComment().visit(cu, null);
+         FileOutputStream out = new FileOutputStream("resources/problem6MODIFIED.java");
+         byte[] modfile = cu.toString().getBytes();
+         out.write(modfile);
+
+        System.out.println("\nTesting problem 7: Avoid constants in code");
+        new ConstantCheck().visit(cu, null);
+
+        System.out.println("\nTesting problem 8: Don't ignore caught exceptions");
+       new CaughtExceptions().visit(cu, null);
+
+       System.out.println("\nTesting problem 9: Don't change a for loop iteration variable in the body of the loop.");
+        new IncrementLoopInLoop().visit(cu ,null);
+
+        System.out.println("\nTesting problem 10: Accessors and Mutators should be named appropriately." );
+        new RelevantGetSetMethod().visit(cu, null);
+
+        System.out.println("\nTesting problem 11: Switch: default label is included" );
+        new EnumVisitor().visit(cu,null);
+        new SwitchStatementVisitor().visit(cu,null);
+
+        System.out.println("\nTesting problem 12: Do not return references to private mutable class members " );
+        new MutableClassMembers().visit(cu, null);
+
+        System.out.println("\nTesting problem 13: Do not expose private members of an outer class from within a nested class");
+        new ExposedPrivateFieldsFromNestedClass().visit(cu,null);
 
     }
 
